@@ -215,9 +215,38 @@ export function validateAccountRegister(body) {
 
 // ---- Compartir (Fase 4): URL pública canónica. La base es configuración
 // explícita del servidor; sin base válida no hay URL pública afirmable.
+// Una base localhost, loopback o privada NUNCA es pública: con ella no hay
+// URL afirmable ni QR presentado como accesible desde otro dispositivo.
+// Una URL configurada tampoco demuestra despliegue.
+function hostNoPublico(hostname) {
+  const h = String(hostname ?? '').toLowerCase().replace(/\.$/, '');
+  if (!h || h === 'localhost' || h.endsWith('.localhost')) return true;
+  if (h === '::1' || h === '[::1]' || h === '0.0.0.0' || h === '::' || h === '[::]') return true;
+  const v4 = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4) {
+    const o = v4.slice(1).map(Number);
+    if (o.some((n) => n > 255)) return true;
+    if (o[0] === 127 || o[0] === 10) return true; // loopback, privada 10/8
+    if (o[0] === 172 && o[1] >= 16 && o[1] <= 31) return true; // privada 172.16/12
+    if (o[0] === 192 && o[1] === 168) return true; // privada 192.168/16
+    if (o[0] === 169 && o[1] === 254) return true; // enlace local
+    return false;
+  }
+  if (h.includes(':')) return true; // IPv6 literal: sin confirmar como pública
+  if (!h.includes('.')) return true; // un solo nombre: probable red local
+  if (h.endsWith('.local') || h.endsWith('.internal') || h.endsWith('.lan')) return true;
+  return false;
+}
 export function publicInitiativeUrl(base, id) {
   if (typeof base !== 'string' || !/^https?:\/\/[^/\s]+$/i.test(base.trim())) return null;
   if (typeof id !== 'string' || !/^[A-Za-z0-9-]+$/.test(id)) return null;
+  let host = '';
+  try {
+    host = new URL(base.trim()).hostname;
+  } catch {
+    return null;
+  }
+  if (hostNoPublico(host)) return null;
   return `${base.trim()}/i/${id}`;
 }
 

@@ -1,5 +1,6 @@
 // Panel Porque: un borrador compartido, tres modalidades equivalentes.
-// Sin conexión: espejo local + aviso. Reconectar jamás publica solo.
+// Sin conexión: espejo de la ÚLTIMA VERSIÓN GUARDADA + aviso (no conserva
+// entradas sin guardar). Reconectar jamás publica solo.
 import { pendingOf, canonicalDraft, contentHashOf, MODALITY_LABEL } from '/shared/contracts.mjs';
 
 const $ = (id) => document.getElementById(id);
@@ -29,7 +30,7 @@ const mirrorSave = () => S.draft && localStorage.setItem('porque.mirror', JSON.s
 function mirrorLoad() {
   try {
     const m = JSON.parse(localStorage.getItem('porque.mirror') ?? 'null');
-    if (m) { S.draft = m; renderEditor(); alert('Espejo local recuperado (rev ' + m.revision + '). Revísalo antes de publicar.'); }
+    if (m) { S.draft = m; renderEditor(); alert('Espejo local recuperado (rev ' + m.revision + '): es la última versión guardada, no incluye entradas sin guardar. Revísalo antes de publicar.'); }
     else alert('No hay espejo local.');
   } catch { alert('Espejo ilegible.'); }
 }
@@ -252,8 +253,7 @@ document.querySelector('#product-modes').addEventListener('click', (e) => {
 $('btn-save-c').addEventListener('click', async () => {
   const patch = { name: $('f-name').value, description: $('f-desc').value };
   if ($('f-price-text').value.trim()) patch.priceText = $('f-price-text').value.trim();
-  await savePatch(patch);
-  $('f-price-text').value = '';
+  if (await savePatch(patch)) $('f-price-text').value = '';
 });
 $('p-plus').addEventListener('click', () => stepPrice(100));
 $('p-minus').addEventListener('click', () => stepPrice(-100));
@@ -445,6 +445,11 @@ $('btn-answer').addEventListener('click', async () => {
 // ---- Revisión y publicación ----
 $('btn-review').addEventListener('click', async () => {
   hidePublishOk();
+  if (isDirty()) {
+    S.review = null; $('review').hidden = true; $('btn-publish').hidden = true;
+    $('draft-meta').textContent = 'Tienes cambios sin guardar: guarda antes de revisar para ver la versión actual.';
+    return;
+  }
   const { body } = await api(`/api/drafts/${S.draft.id}/review`, { method: 'POST' });
   if (!body.ok) return;
   S.review = body.review;

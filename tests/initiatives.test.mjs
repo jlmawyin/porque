@@ -248,4 +248,25 @@ describe('iniciativas (Fase 3)', async () => {
     assert.equal(publicInitiativeUrl('https://porque.somospanas.com/', 'abc-123'), null);
     assert.equal(publicInitiativeUrl('https://porque.somospanas.com', '../x'), null);
   });
+
+  it('publicInitiativeUrl rechaza bases localhost, loopback o privadas', () => {
+    for (const base of [
+      'http://127.0.0.1:4177',
+      'http://localhost:4177',
+      'http://LOCALHOST',
+      'http://[::1]:4177',
+      'http://10.0.0.5',
+      'http://172.16.0.9',
+      'http://192.168.1.20',
+      'http://169.254.10.20',
+      'http://mi-servidor',
+      'http://tienda.local',
+    ]) {
+      assert.equal(publicInitiativeUrl(base, 'abc-123'), null, base);
+    }
+    assert.equal(
+      publicInitiativeUrl('https://porque.somospanas.com', 'abc-123'),
+      'https://porque.somospanas.com/i/abc-123',
+    );
+  });
 });

@@ -63,3 +63,43 @@
 - B3 Presupuesto aprobado: bloquea solo llamadas reales.
 - B4 Bases del evento: bloquean solo decisiones de entrega.
 - B5 Datos operativos del servidor: bloquean solo despliegue.
+
+## Cierre funcional Fase 1 (2026-11-04, encargo unificado)
+
+- Pretendido: 4 correcciones mínimas + recorrido por clics
+  escritorio+390px con capturas, QR descarga+decode, reinicio, SW,
+  consola; checkpoint local antes de idiomas.
+- Terminado: 4/4 correcciones aplicadas y verificadas en UI/API;
+  recorrido ES completo (portada → registro → crear iniciativa →
+  guardar → revisar → publicar → pública → compartir/QR → intención
+  de apoyo); reinicio con persistencia; SW único porque-v2; QR
+  decodificado igual a URL esperada.
+- Archivos: `web/panel.js` (revisar exige guardar; save conserva
+  campos; espejo documentado), `web/panel.html` (aviso offline
+  preciso), `web/initiative.html` (nota configurada-no-despliegue),
+  `shared/contracts.mjs` (base localhost/loopback/privada nunca
+  pública), `tests/initiatives.test.mjs` (+1 prueba), `docs/*`.
+- Comandos y resultados: `node --check` panel.js+contracts OK;
+  `tests/initiatives.test.mjs` 10/10; `npm test` 59/59 fail 0
+  (~4 s, 11 archivos); playwright: registro, guardar, revisar
+  bloqueado con mensaje, publicar v1, apoyo 201 con resumen 1/0;
+  share con base loopback → url null + QR no disponible; QR
+  `https://porque.somospanas.com/i/62501b6a-…` decodificado exacto.
+  Consola: `/` y `/i/:id` 0 errores; `/panel` 2 404 gestionados
+  (sondeo de apoyos sobre lista pública, no bloqueantes), sin
+  excepciones JS. Espejo: initiative rev4 (última guardada).
+- Versión comprobada: código con correcciones F1 sobre 982fc16
+  (pendiente de checkpoint local en este commit).
+- Evidencia: `.playwright-cli/f1-portada-desktop.png`,
+  `f1-panel-editor-desktop.png`, `f1-panel-revision-desktop.png`,
+  `f1-publica-desktop.png`, `f1-publica-qr-desktop.png`,
+  `f1-portada-390.png`, `f1-publica-390.png`,
+  `f1-qr-descargado.gif` (decodificado OK).
+- Observado fuera de alcance (no tocado): botones de modalidad
+  guardan solo modalidad y re-renderizan (pueden vaciar nombre sin
+  guardar si se pulsan entre ediciones); prefijo QR duplicado en
+  nota ("QR no disponible: QR no disponible:…", a limpiar en
+  Fase 2); "1 intenciones" sin pluralizar (Fase 2); 404 de apoyos
+  ajenos en consola (diseño previo: lista pública sin filtro).
+- Pendiente: checkpoint local → Fase 2 textos → Fase 3 ES/EN →
+  verificación final + push.

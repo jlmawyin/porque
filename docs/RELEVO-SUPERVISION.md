@@ -1,5 +1,44 @@
 # RELEVO — Supervisión de Porque (para Claude + Jorge)
 
+## Supervisión general — estado 2026-11-04 y plan del turno
+
+- Partida: HEAD 982fc16 local y GitHub; solo este relevo con cambios
+  locales (conservados, no reescritos). panel.js sintaxis válida, sin
+  NUL, sin faltanDe duplicado; qrcode-generator declarado.
+- Verificado con ejecución (2026-11-04, sobre 982fc16 limpio): npm test
+  pass 58 fail 0 (11 archivos de prueba). Es validación API de ese
+  commit, NO del recorrido por interfaz (incompleto) ni del código que
+  cambie este turno.
+- Implementado: Fases 1–7 + UX Etapas 1–2 (portada, cuentas,
+  iniciativas, apoyos, modalidades, QR, diseño).
+- Encargo unificado en curso: Fase 1 cierre funcional → checkpoint
+  local → Fase 2 textos con identidad → Fase 3 ES/EN → verificación
+  final → commit+push. Sin funciones nuevas, sin cambio de stack, sin
+  llamadas facturables, sin despliegue.
+- Plan de este turno: (1) Fase 1: 4 correcciones mínimas (revisar exige
+  guardar con campos sucios; save fallido conserva campos incl. precio;
+  base localhost/loopback/privada nunca pública ni QR accesible;
+  espejo offline documentado como última versión guardada);
+  (2) recorrido por clics escritorio+390px con capturas, QR
+  descarga+decode, reinicio, SW, consola; (3) checkpoint local;
+  (4) Fase 2 textos; (5) Fase 3 ES/EN; (6) verificación final ES/EN +
+  npm test sobre código final; (7) informes + commit + push normal.
+  Archivos previstos: web/panel.js, web/panel.html,
+  web/initiative.html, shared/contracts.mjs,
+  tests/initiatives.test.mjs, web/* (Fases 2–3), docs/*.
+  Cierre: recorrido UI completo ES/EN evidenciado + suite verde sobre
+  código final + push normal al repo autorizado.
+- Contadores (docs/intentos.json, sin reinicio): shell-exec 2/3
+  resuelto; test-runner-dir 2/3 resuelto; shell-blocked-ux 1/3 abierto,
+  pendiente de actualizar con evidencia de este turno.
+- Bloqueos: ninguno activo. Turno anterior: veto de escritura OneDrive
+  (timeouts) + apagado de PC a mitad del encargo unificado; estado
+  actual comprobado por lectura antes de repetir operaciones.
+- Fase 1 cerrada y verificada este turno (detalle en docs/registro.md):
+  4/4 correcciones, recorrido ES completo con capturas, QR decode OK,
+  reinicio con persistencia, suite 59/59 sobre código corregido.
+- Próximo paso: checkpoint local y Fase 2 (textos con identidad).
+
 ## Propósito y alcance actual
 
 Convertir la base local verificada (borrador → revisión → publicación →
@@ -8,7 +47,9 @@ iniciativas (donaciones y/o negocio), página pública, QR, apoyos y
 accesibilidad. Autorizado: trabajo local en PROJECT_ROOT, dependencias
 del proyecto, migraciones no destructivas y commits locales sin
 secretos. NO autorizado: pagos reales, llamadas facturables sin
-presupuesto aprobado, push, despliegue ni cambios de infraestructura.
+presupuesto aprobado, despliegue ni cambios de infraestructura.
+Push al repo reservado autorizado expresamente por Jorge
+(commit 982fc16 en main local y GitHub, 2026-11-04).
 
 ## Qué existía y qué se conserva
 
@@ -21,7 +62,11 @@ presupuesto aprobado, push, despliegue ni cambios de infraestructura.
 - Se conserva todo y se extiende por cambios pequeños. Los datos
   existentes migran sin atribuirse al primer usuario que se registre.
 
-## Qué se implementó realmente (este encargo)
+## Qué se implementó realmente (histórico por fases)
+
+> Histórico acumulado. Estado vigente arriba. "Pendiente de
+> verificación" aquí = pendiente de recorrido UI/navegador salvo
+> que se indique suite verde con fecha.
 
 - Fase 1 implementada pendiente de verificación: portada (hero
   exacto, CTAs, cabecera, Explorar/Cómo funciona/Crear/F pie),
@@ -122,14 +167,15 @@ presupuesto aprobado, push, despliegue ni cambios de infraestructura.
 - Contratos: `shared/contracts.mjs`. Dobles: `adapters/fakes.mjs`.
 - Web: `web/index.html`, `web/panel.html`, `web/panel.js`,
   `web/styles.css`, `web/sw.js`.
-- Pruebas: `tests/*.test.mjs` (8 suites). Docs: `docs/registro.md`,
+- Pruebas: `tests/*.test.mjs` (11 archivos de prueba, 58 pruebas). Docs: `docs/registro.md`,
   `docs/intentos.json`, `docs/H0a-contratos.md`,
   `docs/presupuesto-ronda1.md`, `docs/decisiones.md`.
 - Privados (no versionar): `.env`, `data/`.
 
 ## Decisiones y supuestos
 
-- Stack inalterado: Node 24, cero dependencias, SQLite, vainilla.
+- Stack: Node 24, 1 dependencia (qrcode-generator MIT, solo QR),
+  SQLite, vainilla. Histórico "cero dependencias" válido hasta 2026-11-01.
 - Fase 2 (previsto): tabla `users` (nombre público, correo único,
   hash scrypt), sesiones con `user_id`; `sellers` heredado solo para
   datos existentes con propietario NULL (no tocables por cuentas
@@ -175,15 +221,13 @@ npm test
 
 ## Bloqueos, pendientes y próximo paso
 
-- BLOQUEO ACTIVO (shell): `require_escalated` denegado (“approval
-  prompts are disabled”); sandbox normal con fallo persistente
-  (`deny_read_acl_state.json`, ACL/owner no probado). Sin cambios de
-  ACL ni elusiones. Próximo paso: Jorge habilita aprobación o repara
-  entorno; entonces: `npm test`, integrar Fase 1, commit local.
-- Pendientes: validación Android físico, ronda real 1, bases del
-  evento, datos operativos Contabo, git init + commits, deploy.
-- Próximo paso concreto: esperar agente UI → integrar `web/` →
-  verificar con ejecución → commit → Fase 2 (cuentas).
+- Shell: incidente 2026-10-31–11-01 RESUELTO (vía normal
+  operativa desde 2026-11-04; evidencia: sonda + 58/58 + QR
+  roundtrip ejecutados). Sin cambios de ACL ni elusiones.
+- Pendientes no bloqueantes: Android físico, ronda real 1
+  (presupuesto), bases del evento, datos Contabo, despliegue.
+- Próximo paso: correcciones mínimas y verificación de este turno
+  (ver Estado 2026-11-04).
 
 ## Preparación de repositorio y despliegue
 

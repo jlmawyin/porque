@@ -245,7 +245,7 @@ async function cargar() {
   try {
     const sr = await fetch(`/api/share/initiative/${encodeURIComponent(init.id)}`);
     const sj = await sr.json();
-    if (sj?.ok && sj.share?.url) { shareUrl = absUrl(sj.share.url); shareNote = 'Dirección pública verificada.'; }
+    if (sj?.ok && sj.share?.url) { shareUrl = absUrl(sj.share.url); shareNote = 'Dirección pública configurada (no confirma despliegue).'; }
     else if (sj?.ok && sj.share?.localPath) { shareUrl = absUrl(sj.share.localPath); }
     if (sj?.ok && sj.share?.qr) shareQr = sj.share.qr;
   } catch { /* usa enlace local */ }
