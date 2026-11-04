@@ -1,7 +1,7 @@
 // Service worker: shell + catálogo público en caché. Nunca cachea
 // respuestas privadas ni mutaciones. No publica nada automáticamente.
-const CACHE = 'porque-v2';
-const SHELL = ['/', '/panel', '/styles.css', '/manifest.webmanifest', '/icon.svg', '/panel.js'];
+const CACHE = 'porque-v3';
+const SHELL = ['/', '/panel', '/styles.css', '/manifest.webmanifest', '/icon.svg', '/panel.js', '/i18n.mjs'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

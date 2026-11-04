@@ -217,3 +217,13 @@ footer a { color: var(--primario); }
   .hero h1 { font-size: 1.9rem; }
   .barra nav a { padding: 0.75rem 0.4rem; font-size: 0.95rem; }
 }
+
+/* Selector de idioma: sigue el estilo de la navegación, sin banderas. */
+.idioma { display: inline-flex; align-items: center; gap: 0.15rem; margin-left: 0.25rem; }
+.idioma button {
+  color: var(--texto); background: none; border: 0; cursor: pointer; font: inherit;
+  padding: 0.75rem 0.45rem; border-radius: 12px; min-height: 3rem; white-space: nowrap;
+}
+.idioma button:hover { background: var(--superficie-suave); }
+.idioma button[aria-pressed="true"] { font-weight: bold; text-decoration: underline; text-underline-offset: 3px; }
+.idioma .sep { opacity: 0.5; }

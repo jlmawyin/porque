@@ -3,44 +3,49 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Porque — iniciativa</title>
-<meta name="description" content="Página pública de una iniciativa.">
+<title data-i18n="initTitle">Porque — iniciativa</title>
+<meta name="description" content="Página pública de una iniciativa." data-i18n-content="initMeta">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="stylesheet" href="/styles.css">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 </head>
 <body>
-<a class="salto" href="#contenido">Saltar al contenido</a>
+<a class="salto" href="#contenido" data-i18n="skipContent">Saltar al contenido</a>
 <header class="barra">
   <div class="contenedor">
     <p class="marca"><a href="/">Porque</a></p>
-    <nav aria-label="Principal">
-      <a href="/#explorar">Explorar</a>
-      <a href="/panel">Entrar</a>
-      <a class="destacado" href="/panel?a=registro">Crear iniciativa</a>
+    <nav aria-label="Principal" data-i18n-aria="navMain">
+      <a href="/#explorar" data-i18n="navExplore">Explorar</a>
+      <a href="/panel" data-i18n="navLogin">Entrar</a>
+      <a class="destacado" href="/panel?a=registro" data-i18n="navCreate">Crear iniciativa</a>
+      <span class="idioma" role="group" aria-label="Idioma" data-i18n-aria="langGroup"><button type="button" data-lang="es" aria-pressed="true">Español</button><span class="sep" aria-hidden="true">|</span><button type="button" data-lang="en" aria-pressed="false">English</button></span>
     </nav>
   </div>
 </header>
 
 <main id="contenido" class="contenedor">
-  <p class="aviso-demo">Demostración</p>
-  <div id="iniciativa" aria-live="polite"><p>Cargando…</p></div>
+  <p class="aviso-demo" data-i18n="demo">Demostración</p>
+  <div id="iniciativa" aria-live="polite"><p data-i18n="loading">Cargando…</p></div>
 
   <div id="consulta" hidden>
-    <h2>Preparar consulta</h2>
+    <h2 data-i18n="consultTitle">Preparar consulta</h2>
     <p id="consulta-producto"></p>
-    <button id="btn-copiar" class="big">Copiar enlace</button>
-    <button id="btn-chat" class="big">Abrir chat</button>
-    <p class="nota">Abrir un chat no confirma envío, recepción ni aceptación.</p>
+    <button id="btn-copiar" class="big" data-i18n="copyLink">Copiar enlace</button>
+    <button id="btn-chat" class="big" data-i18n="openChat">Abrir chat</button>
+    <p class="nota" data-i18n="chatNote">Abrir un chat no confirma envío, recepción ni aceptación.</p>
     <p id="consulta-estado" role="status"></p>
   </div>
 </main>
 
-<footer><div class="contenedor"><p>Porque — porque somos panas · <a href="/#explorar">Explorar</a></p></div></footer>
+<footer><div class="contenedor"><p><span data-i18n="footerBrand">Porque — porque somos panas</span> · <a href="/#explorar" data-i18n="navExplore">Explorar</a></p></div></footer>
 <script type="module">
+import { t, modalityName, initI18n } from '/i18n.mjs';
+const L = () => getLang();
 const WA_TEMPLATE = 'https://wa.me/?text={text}'; // formato por verificar oficialmente
-const MODALIDAD = { donations: 'Donaciones', business: 'Negocio', both: 'Ambas' };
 const main = document.getElementById('iniciativa');
+let viewState = 'loading'; // loading | ok | notFound | offline | gone | loadFail
+let lastInit = null;
+let lastShare = null;
 
 function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function idDeRuta() {
@@ -50,15 +55,15 @@ function idDeRuta() {
 }
 function metaUSD(cents) {
   if (!Number.isInteger(cents)) return '';
-  return `<p class="meta"><strong>Meta:</strong> $${(cents / 100).toFixed(2)} USD</p>
-    <p class="nota">La meta es solo una meta pública. No son fondos recaudados.</p>`;
+  return `<p class="meta"><strong>${escapeHtml(t(L(), 'metaGoal'))}</strong> $${(cents / 100).toFixed(2)} USD</p>
+    <p class="nota">${escapeHtml(t(L(), 'goalNote'))}</p>`;
 }
 function visualInit(init) {
   if (init.imageRef) {
-    return `<figure><img src="${escapeHtml(init.imageRef)}" alt="Imagen ilustrativa de la iniciativa"><figcaption>${init.imageAi ? '<span class="etiqueta-ia">Imagen ilustrativa generada con IA</span>' : ''}</figcaption></figure>`;
+    return `<figure><img src="${escapeHtml(init.imageRef)}" alt="${escapeHtml(t(L(), 'initImgAlt'))}"><figcaption>${init.imageAi ? `<span class="etiqueta-ia">${escapeHtml(t(L(), 'aiImg'))}</span>` : ''}</figcaption></figure>`;
   }
   const letra = String(init.name ?? '?').trim().charAt(0).toUpperCase() || '?';
-  return `<div class="visual-alt" role="img" aria-label="Ilustración decorativa">${escapeHtml(letra)}</div>`;
+  return `<div class="visual-alt" role="img" aria-label="${escapeHtml(t(L(), 'visualAlt'))}">${escapeHtml(letra)}</div>`;
 }
 function cardProducto(p) {
   const precio = Number.isInteger(p.priceCents) ? `<p class="precio">$${(p.priceCents / 100).toFixed(2)} USD</p>` : '';
@@ -66,12 +71,12 @@ function cardProducto(p) {
     <h3>${escapeHtml(p.name)}</h3>
     ${precio}
     <p>${escapeHtml(p.description || '')}</p>
-    ${p.imageAi ? '<p><span class="etiqueta-ia">Imagen ilustrativa generada con IA</span></p>' : ''}
-    <button class="big" data-consulta="${escapeHtml(p.id)}" data-nombre="${escapeHtml(p.name)}">Consultar</button>
+    ${p.imageAi ? `<p><span class="etiqueta-ia">${escapeHtml(t(L(), 'aiImg'))}</span></p>` : ''}
+    <button class="big" data-consulta="${escapeHtml(p.id)}" data-nombre="${escapeHtml(p.name)}">${escapeHtml(t(L(), 'inquire'))}</button>
   </article>`;
 }
 function vista(init) {
-  const modalidad = MODALIDAD[init.modality] ?? 'Sin definir';
+  const modalidad = init.modality ? modalityName(L(), init.modality) : t(L(), 'modalityNone');
   const productos = Array.isArray(init.products) ? init.products : [];
   const esNegocio = init.modality === 'business';
   const esDonaciones = init.modality === 'donations';
@@ -79,49 +84,55 @@ function vista(init) {
   const muestraCatalogo = !esDonaciones;
   return `<div class="pagina-init">
     <article aria-labelledby="init-nombre">
-      <h1 id="init-nombre">${escapeHtml(init.name ?? 'Iniciativa sin nombre')}</h1>
+      <h1 id="init-nombre">${escapeHtml(init.name ?? t(L(), 'initNoName'))}</h1>
       <p><span class="etiqueta-modalidad">${escapeHtml(modalidad)}</span></p>
-      ${init.ownerName ? `<p class="nota">Publicada por ${escapeHtml(init.ownerName)}.</p>` : ''}
+      ${init.ownerName ? `<p class="nota">${escapeHtml(t(L(), 'publishedBy', { name: init.ownerName }))}</p>` : ''}
       ${visualInit(init)}
       ${init.description ? `<p>${escapeHtml(init.description)}</p>` : ''}
-      ${muestraProposito ? `<h2>Propósito</h2><p>${escapeHtml(init.purpose)}</p>` : ''}
+      ${muestraProposito ? `<h2>${escapeHtml(t(L(), 'purposeTitle'))}</h2><p>${escapeHtml(init.purpose)}</p>` : ''}
       ${esDonaciones || init.modality === 'both' ? metaUSD(init.goalCents) : ''}
       ${muestraCatalogo ? (productos.length
-        ? `<h2>Productos y servicios</h2><div class="productos">${productos.map(cardProducto).join('')}</div>`
-        : '<p class="nota">Esta iniciativa aún no tiene productos públicos.</p>') : ''}
+        ? `<h2>${escapeHtml(t(L(), 'prodTitle'))}</h2><div class="productos">${productos.map(cardProducto).join('')}</div>`
+        : `<p class="nota">${escapeHtml(t(L(), 'noProdsPub'))}</p>`) : ''}
     </article>
     <div class="lateral-init">
       <section class="tarjeta" aria-labelledby="apoyar-titulo">
-        <h2 id="apoyar-titulo">Apoyar</h2>
+        <h2 id="apoyar-titulo">${escapeHtml(t(L(), 'supportTitle'))}</h2>
         <div id="apoyos" data-id="${escapeHtml(init.id ?? '')}" data-modality="${escapeHtml(init.modality ?? '')}">
-          <p class="nota">Cargando formas de apoyo…</p>
+          <p class="nota">${escapeHtml(t(L(), 'apoyoLoading'))}</p>
         </div>
       </section>
       <section class="tarjeta" aria-labelledby="compartir-titulo">
-        <h2 id="compartir-titulo">Compartir</h2>
+        <h2 id="compartir-titulo">${escapeHtml(t(L(), 'shareTitle'))}</h2>
+        <p class="nota">${escapeHtml(t(L(), 'shareSpread'))}</p>
         <p id="url-canonica" class="nota"></p>
-        <button id="btn-copiar-url" class="big">Copiar la dirección de esta página</button>
+        <button id="btn-copiar-url" class="big">${escapeHtml(t(L(), 'btnCopyUrl'))}</button>
         <p id="url-estado" role="status"></p>
-        <div id="qr-box"><p class="nota" id="qr-nota">QR descargable: pendiente (se habilita con la dirección pública verificada).</p></div>
+        <div id="qr-box"><p class="nota" id="qr-nota">${escapeHtml(t(L(), 'qrPending'))}</p></div>
       </section>
     </div>
   </div>`;
 }
-const KIND_LABEL = { intent: 'Intención de apoyo', simulated: 'Simulación' };
+function apoyoKindName(k) {
+  if (k === 'intent') return t(L(), 'supKindIntent');
+  if (k === 'simulated') return t(L(), 'supKindSim');
+  return k || t(L(), 'supKindFallback');
+}
 function parseMontoUSD(text) {
-  const t = String(text ?? '').trim().replace(',', '.');
-  if (!t) return { value: null };
-  if (!/^\d+(\.\d{1,2})?$/.test(t)) return { error: 'Monto inválido: usa un número en USD, p. ej. 10 o 25.50' };
-  const cents = Math.round(Number(t) * 100);
+  const tt = String(text ?? '').trim().replace(',', '.');
+  if (!tt) return { value: null };
+  if (!/^\d+(\.\d{1,2})?$/.test(tt)) return { error: t(L(), 'montoInvalid') };
+  const cents = Math.round(Number(tt) * 100);
   if (!Number.isSafeInteger(cents) || cents < 1 || cents > 100000000) {
-    return { error: 'Monto inválido: debe ser mayor que 0 USD' };
+    return { error: t(L(), 'montoRange') };
   }
   return { value: cents };
 }
 function resumenTexto(j) {
   if (!j || j.ok !== true) return null;
   const n = (v) => Number.isInteger(v) ? v : 0;
-  return `${n(j.intents)} intenciones expresadas · ${n(j.simulated)} simulaciones de demostración. No son fondos ni dinero recibido.`;
+  const plural = (v, uno, varias) => `${v} ${v === 1 ? uno : varias}`;
+  return `${plural(n(j.intents), t(L(), 'intentOne'), t(L(), 'intentMany'))} · ${plural(n(j.simulated), t(L(), 'simOne'), t(L(), 'simMany'))}. ${t(L(), 'sumSuffix')}`;
 }
 async function cargarResumen(id) {
   const el = document.getElementById('apoyos-resumen');
@@ -129,20 +140,20 @@ async function cargarResumen(id) {
   try {
     const r = await fetch(`/api/initiatives/${encodeURIComponent(id)}/supports/summary`);
     const j = await r.json();
-    el.textContent = r.ok && j?.ok ? (resumenTexto(j) ?? 'Resumen no disponible por ahora.') : 'Resumen no disponible por ahora. Inténtalo de nuevo más tarde.';
+    el.textContent = r.ok && j?.ok ? (resumenTexto(j) ?? t(L(), 'sumDown')) : t(L(), 'sumDownRetry');
   } catch {
-    el.textContent = 'Resumen no disponible por ahora. Revisa tu conexión e inténtalo de nuevo.';
+    el.textContent = t(L(), 'sumDownConn');
   }
 }
 function formularioApoyo(kind, titulo, explicacion, confirmacion) {
   return `<form id="form-${kind}" class="apoyo-form" novalidate>
-    <h3>${titulo}</h3>
-    <p class="nota">${explicacion}</p>
-    <label>Monto en USD (opcional) <input name="monto" inputmode="decimal" placeholder="10" autocomplete="off"></label>
-    <label>Apodo (opcional, se muestra al dueño) <input name="apodo" maxlength="60" autocomplete="nickname"></label>
-    <label>Mensaje (opcional) <textarea name="mensaje" rows="2" maxlength="500"></textarea></label>
-    <label class="confirm"><input type="checkbox" name="confirma" required> ${confirmacion}</label>
-    <button type="submit" class="big">Confirmar: ${titulo.toLowerCase()}</button>
+    <h3>${escapeHtml(titulo)}</h3>
+    <p class="nota">${escapeHtml(explicacion)}</p>
+    <label>${escapeHtml(t(L(), 'formMonto'))} <input name="monto" inputmode="decimal" placeholder="10" autocomplete="off"></label>
+    <label>${escapeHtml(t(L(), 'formApodo'))} <input name="apodo" maxlength="60" autocomplete="nickname"></label>
+    <label>${escapeHtml(t(L(), 'formMsg'))} <textarea name="mensaje" rows="2" maxlength="500"></textarea></label>
+    <label class="confirm"><input type="checkbox" name="confirma" required> ${escapeHtml(confirmacion)}</label>
+    <button type="submit" class="big">${escapeHtml(t(L(), 'formConfirm', { title: titulo.toLowerCase() }))}</button>
     <p id="estado-${kind}" role="status"></p>
   </form>`;
 }
@@ -152,10 +163,10 @@ async function enviarApoyo(kind, id, form) {
   if (monto.error) { estado.textContent = monto.error; form.monto.focus(); return; }
   const apodo = String(form.apodo.value ?? '').trim();
   const mensaje = String(form.mensaje.value ?? '').trim();
-  if (apodo.length > 60) { estado.textContent = 'Apodo inválido: máximo 60 caracteres.'; form.apodo.focus(); return; }
-  if (mensaje.length > 500) { estado.textContent = 'Mensaje inválido: máximo 500 caracteres.'; form.mensaje.focus(); return; }
-  if (!form.confirma.checked) { estado.textContent = 'Marca la confirmación para continuar.'; form.confirma.focus(); return; }
-  estado.textContent = 'Enviando…';
+  if (apodo.length > 60) { estado.textContent = t(L(), 'nickInvalid'); form.apodo.focus(); return; }
+  if (mensaje.length > 500) { estado.textContent = t(L(), 'msgInvalid'); form.mensaje.focus(); return; }
+  if (!form.confirma.checked) { estado.textContent = t(L(), 'confirmReq'); form.confirma.focus(); return; }
+  estado.textContent = t(L(), 'sending');
   const cuerpo = { kind, clientOpId: crypto.randomUUID() };
   if (monto.value !== null) cuerpo.amountCents = monto.value;
   if (apodo) cuerpo.nickname = apodo;
@@ -166,23 +177,44 @@ async function enviarApoyo(kind, id, form) {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(cuerpo),
     });
   } catch {
-    estado.textContent = 'No se pudo registrar el apoyo. Revisa tu conexión e inténtalo de nuevo.';
+    estado.textContent = t(L(), 'supportOffline');
     return;
   }
   let j = null;
   try { j = await r.json(); } catch { /* respuesta ilegible */ }
   if ((r.status === 201 || r.ok) && j?.ok && j.support) {
-    const etiqueta = j.labels?.kind ?? KIND_LABEL[kind] ?? kind;
-    const nota = j.labels?.note ?? 'Expresado. No es dinero recibido.';
-    estado.textContent = `${etiqueta}: ${nota}`;
+    const etiqueta = apoyoKindName(kind);
+    estado.textContent = `${t(L(), 'supportThanks')} ${etiqueta}: ${t(L(), 'expressedNote')}`;
     form.reset();
     cargarResumen(id);
   } else if (r.status === 400) {
-    estado.textContent = 'No se pudo registrar: ' + ((j && (j.detail || j.error)) || 'revisa los campos e inténtalo de nuevo.');
+    estado.textContent = t(L(), 'supportBad', { detail: (j && (j.detail || j.error)) || t(L(), 'supportBadDefault') });
   } else if (r.status === 404) {
-    estado.textContent = 'Esta iniciativa ya no admite apoyos.';
+    estado.textContent = t(L(), 'supportClosed');
   } else {
-    estado.textContent = 'No se pudo registrar el apoyo. Inténtalo de nuevo más tarde.';
+    estado.textContent = t(L(), 'supportLate');
+  }
+}
+function keepApoyoForms() {
+  const keep = {};
+  for (const kind of ['intent', 'simulated']) {
+    const form = document.getElementById(`form-${kind}`);
+    if (!form) continue;
+    keep[kind] = {
+      monto: form.monto.value, apodo: form.apodo.value,
+      mensaje: form.mensaje.value, confirma: form.confirma.checked,
+    };
+  }
+  return keep;
+}
+function restoreApoyoForms(keep) {
+  for (const kind of ['intent', 'simulated']) {
+    const form = document.getElementById(`form-${kind}`);
+    if (!form || !keep[kind]) continue;
+    form.monto.value = keep[kind].monto;
+    form.apodo.value = keep[kind].apodo;
+    form.mensaje.value = keep[kind].mensaje;
+    form.confirma.checked = keep[kind].confirma;
   }
 }
 function montarApoyos(init) {
@@ -191,17 +223,13 @@ function montarApoyos(init) {
   const id = init.id;
   const modalidad = init.modality;
   if (modalidad !== 'donations' && modalidad !== 'both') {
-    box.innerHTML = '<p class="nota">Esta iniciativa es un negocio: aquí no se registran apoyos ni simulaciones. Puedes conocerla, consultar sus productos o compartir su enlace.</p>';
+    box.innerHTML = `<p class="nota">${escapeHtml(t(L(), 'bizNoSup'))}</p>`;
     return;
   }
-  box.innerHTML = `<p id="apoyos-resumen" role="status">Cargando resumen…</p>
+  box.innerHTML = `<p id="apoyos-resumen" role="status">${escapeHtml(t(L(), 'sumLoading'))}</p>
     <div class="apoyos-grid">
-      ${formularioApoyo('intent', 'Expresar intención de apoyo',
-        'Una intención es solo un mensaje al dueño: no mueve dinero ni es un pago.',
-        'Confirmo que esto es solo una intención, sin dinero.')}
-      ${formularioApoyo('simulated', 'Simular donación',
-        'Simulación de demostración: no mueve dinero real ni se recibe nada.',
-        'Confirmo que esto es solo una simulación de demostración, sin dinero.')}
+      ${formularioApoyo('intent', t(L(), 'intentT'), t(L(), 'intentX'), t(L(), 'intentC'))}
+      ${formularioApoyo('simulated', t(L(), 'simT'), t(L(), 'simX'), t(L(), 'simC'))}
     </div>`;
   cargarResumen(id);
   for (const kind of ['intent', 'simulated']) {
@@ -211,53 +239,29 @@ function montarApoyos(init) {
     });
   }
 }
-async function cargar() {
-  const id = idDeRuta();
-  if (!id) {
-    main.innerHTML = '<h1>No se encontró la iniciativa</h1><p>El enlace no incluye un identificador válido. <a href="/#explorar">Volver a Explorar</a>.</p>';
-    return;
-  }
-  let r;
-  try {
-    r = await fetch(`/api/initiatives/${encodeURIComponent(id)}`);
-  } catch {
-    main.innerHTML = '<h1>Sin conexión</h1><p>No se pudo cargar la iniciativa. Revisa tu conexión e inténtalo de nuevo.</p>';
-    return;
-  }
-  if (r.status === 404) {
-    main.innerHTML = '<h1>Esta iniciativa no existe</h1><p>No existe o dejó de estar publicada. <a href="/#explorar">Volver a Explorar</a>.</p>';
-    return;
-  }
-  let data = null;
-  try { data = await r.json(); } catch { /* respuesta ilegible */ }
-  if (!r.ok || !data?.ok || !data?.initiative) {
-    main.innerHTML = '<h1>No se pudo cargar la iniciativa</h1><p>Inténtalo de nuevo más tarde. <a href="/#explorar">Volver a Explorar</a>.</p>';
-    return;
-  }
-  const init = { ...data.initiative, products: data.products }; // API: {initiative, products} hermanos
-  document.title = `Porque — ${init.name ?? 'iniciativa'}`;
-  main.innerHTML = vista(init);
-  montarApoyos(init);
-  const absUrl = (u) => new URL(u, location.origin).href;
-  let shareUrl = absUrl('/i/' + init.id);
-  let shareNote = 'Enlace local: válido solo en este entorno. No lo presentes como público.';
-  let shareQr = null;
-  try {
-    const sr = await fetch(`/api/share/initiative/${encodeURIComponent(init.id)}`);
-    const sj = await sr.json();
-    if (sj?.ok && sj.share?.url) { shareUrl = absUrl(sj.share.url); shareNote = 'Dirección pública configurada (no confirma despliegue).'; }
-    else if (sj?.ok && sj.share?.localPath) { shareUrl = absUrl(sj.share.localPath); }
-    if (sj?.ok && sj.share?.qr) shareQr = sj.share.qr;
-  } catch { /* usa enlace local */ }
+function errorVista(titleKey, p1Key) {
+  main.innerHTML = `<h1>${escapeHtml(t(L(), titleKey))}</h1><p>${escapeHtml(t(L(), p1Key))}<a href="/#explorar">${escapeHtml(t(L(), 'backExplore'))}</a>.</p>`;
+}
+// Motivos conocidos del servidor, en el idioma de la interfaz.
+// Un motivo desconocido se muestra tal cual (nunca se inventa).
+function qrReasonText(reason) {
+  if (reason === t('es', 'qrNoPublic')) return t(L(), 'qrNoPublic');
+  if (reason === t('es', 'qrNoDep')) return t(L(), 'qrNoDep');
+  return reason;
+}
+function renderShare(init) {
+  const shareUrl = lastShare?.shareUrl ?? new URL(`/i/${init.id}`, location.origin).href;
+  const shareNote = lastShare?.shareNote ?? t(L(), 'shareLocal');
+  const shareQr = lastShare?.shareQr ?? null;
   // QR real si el endpoint lo trae;
   // si no, mensaje honesto con el motivo. El QR codifica SOLO la URL.
   if (shareQr?.available && shareQr.dataUrl) {
     document.getElementById('qr-box').innerHTML =
-      `<img src="${shareQr.dataUrl}" alt="Código QR de la iniciativa">` +
-      `<p><a id="btn-qr-descarga" class="boton" href="${shareQr.dataUrl}" download="qr-iniciativa-${encodeURIComponent(init.id)}.gif">Descargar QR</a></p>` +
-      (shareQr.local ? '<p class="nota">QR del enlace local: válido solo en este entorno.</p>' : '');
+      `<img src="${shareQr.dataUrl}" alt="${escapeHtml(t(L(), 'qrDownload'))}">` +
+      `<p><a id="btn-qr-descarga" class="boton" href="${shareQr.dataUrl}" download="qr-iniciativa-${encodeURIComponent(init.id)}.gif">${escapeHtml(t(L(), 'qrDownload'))}</a></p>` +
+      (shareQr.local ? `<p class="nota">${escapeHtml(t(L(), 'qrLocalNote'))}</p>` : '');
   } else if (shareQr?.reason) {
-    document.getElementById('qr-nota').textContent = 'QR no disponible: ' + shareQr.reason;
+    document.getElementById('qr-nota').textContent = qrReasonText(shareQr.reason);
   }
   document.getElementById('url-canonica').textContent = shareNote + ' ' + shareUrl;
   document.getElementById('btn-copiar-url').addEventListener('click', async () => {
@@ -265,14 +269,83 @@ async function cargar() {
     const url = shareUrl;
     try {
       await navigator.clipboard.writeText(url);
-      estado.textContent = 'Dirección copiada.';
+      estado.textContent = t(L(), 'linkCopied');
     } catch {
-      estado.textContent = 'No se pudo copiar. Dirección: ' + url;
+      estado.textContent = t(L(), 'copyFail', { url });
     }
   });
 }
+async function cargar() {
+  const id = idDeRuta();
+  if (!id) {
+    viewState = 'notFound';
+    errorVista('notFoundTitle', 'notFoundP1');
+    return;
+  }
+  let r;
+  try {
+    r = await fetch(`/api/initiatives/${encodeURIComponent(id)}`);
+  } catch {
+    viewState = 'offline';
+    errorVista('offlineTitle', 'offlineP');
+    return;
+  }
+  if (r.status === 404) {
+    viewState = 'gone';
+    errorVista('goneTitle', 'goneP1');
+    return;
+  }
+  let data = null;
+  try { data = await r.json(); } catch { /* respuesta ilegible */ }
+  if (!r.ok || !data?.ok || !data?.initiative) {
+    viewState = 'loadFail';
+    errorVista('loadFailTitle', 'loadFailP1');
+    return;
+  }
+  const init = { ...data.initiative, products: data.products }; // API: {initiative, products} hermanos
+  lastInit = init;
+  viewState = 'ok';
+  document.title = `Porque — ${init.name ?? t(L(), 'initNoName')}`;
+  main.innerHTML = vista(init);
+  montarApoyos(init);
+  const absUrl = (u) => new URL(u, location.origin).href;
+  lastShare = {
+    shareUrl: absUrl('/i/' + init.id),
+    shareNote: t(L(), 'shareLocal'),
+    configured: false,
+    shareQr: null,
+  };
+  try {
+    const sr = await fetch(`/api/share/initiative/${encodeURIComponent(init.id)}`);
+    const sj = await sr.json();
+    if (sj?.ok && sj.share?.url) { lastShare.shareUrl = absUrl(sj.share.url); lastShare.shareNote = t(L(), 'shareConfigured'); lastShare.configured = true; }
+    else if (sj?.ok && sj.share?.localPath) { lastShare.shareUrl = absUrl(sj.share.localPath); }
+    if (sj?.ok && sj.share?.qr) lastShare.shareQr = sj.share.qr;
+  } catch { /* usa enlace local */ }
+  renderShare(init);
+}
+function refreshLang() {
+  if (viewState !== 'ok' || !lastInit) {
+    if (viewState === 'notFound') errorVista('notFoundTitle', 'notFoundP1');
+    else if (viewState === 'offline') errorVista('offlineTitle', 'offlineP');
+    else if (viewState === 'gone') errorVista('goneTitle', 'goneP1');
+    else if (viewState === 'loadFail') errorVista('loadFailTitle', 'loadFailP1');
+    return;
+  }
+  const keep = keepApoyoForms();
+  const init = lastInit;
+  document.title = `Porque — ${init.name ?? t(L(), 'initNoName')}`;
+  if (lastShare) lastShare.shareNote = t(L(), lastShare.configured ? 'shareConfigured' : 'shareLocal');
+  main.innerHTML = vista(init);
+  montarApoyos(init);
+  restoreApoyoForms(keep);
+  renderShare(init);
+  if (!document.getElementById('consulta').hidden && consultaNombre) {
+    document.getElementById('consulta-producto').textContent = t(L(), 'consultingAbout', { name: consultaNombre });
+  }
+}
 
-let consultaId = null, consultaUrl = '';
+let consultaId = null, consultaUrl = '', consultaNombre = '';
 main.addEventListener('click', async (e) => {
   const b = e.target.closest('[data-consulta]');
   if (!b) return;
@@ -283,9 +356,9 @@ main.addEventListener('click', async (e) => {
     data = await r.json();
   } catch { /* sin conexión */ }
   if (!data?.ok) return;
-  consultaId = data.inquiry.id; consultaUrl = data.url;
+  consultaId = data.inquiry.id; consultaUrl = data.url; consultaNombre = b.dataset.nombre;
   document.getElementById('consulta').hidden = false;
-  document.getElementById('consulta-producto').textContent = `Consulta sobre: ${b.dataset.nombre}`;
+  document.getElementById('consulta-producto').textContent = t(L(), 'consultingAbout', { name: consultaNombre });
   document.getElementById('consulta-estado').textContent = '';
   document.getElementById('consulta').scrollIntoView({ block: 'nearest' });
 });
@@ -294,18 +367,19 @@ document.getElementById('btn-copiar').addEventListener('click', async () => {
   const estado = document.getElementById('consulta-estado');
   try {
     await navigator.clipboard.writeText(absUrlConsulta(consultaUrl));
-    estado.textContent = 'Enlace copiado.';
+    estado.textContent = t(L(), 'linkCopied');
   } catch {
-    estado.textContent = 'No se pudo copiar. Enlace: ' + absUrlConsulta(consultaUrl);
+    estado.textContent = t(L(), 'copyFail', { url: absUrlConsulta(consultaUrl) });
   }
 });
 document.getElementById('btn-chat').addEventListener('click', async () => {
-  const texto = encodeURIComponent(`Hola, me interesa: ${document.getElementById('consulta-producto').textContent} ${absUrlConsulta(consultaUrl)}`);
+  const texto = encodeURIComponent(t(L(), 'chatHello', { text: document.getElementById('consulta-producto').textContent, url: absUrlConsulta(consultaUrl) }));
   window.open(WA_TEMPLATE.replace('{text}', texto), '_blank', 'noopener');
   try { await fetch(`/api/inquiries/${consultaId}/opened`, { method: 'POST' }); } catch { /* informativo */ }
-  document.getElementById('consulta-estado').textContent = 'Chat abierto (no confirma envío ni respuesta).';
+  document.getElementById('consulta-estado').textContent = t(L(), 'chatOpen');
 });
 
+const getLang = initI18n(refreshLang);
 cargar();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 </script>

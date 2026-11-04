@@ -34,10 +34,19 @@
 - Bloqueos: ninguno activo. Turno anterior: veto de escritura OneDrive
   (timeouts) + apagado de PC a mitad del encargo unificado; estado
   actual comprobado por lectura antes de repetir operaciones.
-- Fase 1 cerrada y verificada este turno (detalle en docs/registro.md):
-  4/4 correcciones, recorrido ES completo con capturas, QR decode OK,
-  reinicio con persistencia, suite 59/59 sobre código corregido.
-- Próximo paso: checkpoint local y Fase 2 (textos con identidad).
+- Fase 1 cerrada y verificada (checkpoint ed710aa): 4/4 correcciones,
+  recorrido ES con capturas, QR decode OK, reinicio OK, suite 59/59.
+- Fase 2 cerrada (textos con identidad, sin rediseño): referencias
+  aplicadas (portada, registro, negocios, compartir, apoyo), botones
+  claros conservados, prefijo QR duplicado y plural limpiados.
+- Fase 3 cerrada y verificada: selector Español | English en vivo
+  (sin recarga: conserva campos, sesión, nada publica), diccionarios
+  locales (~200 claves, paridad probada), prioridad ?lang→guardada→
+  navegador→es, Why Porque solo en EN, USD sin conversión, SW v3.
+  Recorrido EN completo + regresión ES con capturas, consola sin
+  errores bloqueantes, QR decode re-verificado, suite 63/63
+  (12 archivos de prueba).
+- Próximo paso: commit de cierre bilingüe + push normal + informe.
 
 ## Propósito y alcance actual
 
@@ -167,7 +176,7 @@ Push al repo reservado autorizado expresamente por Jorge
 - Contratos: `shared/contracts.mjs`. Dobles: `adapters/fakes.mjs`.
 - Web: `web/index.html`, `web/panel.html`, `web/panel.js`,
   `web/styles.css`, `web/sw.js`.
-- Pruebas: `tests/*.test.mjs` (11 archivos de prueba, 58 pruebas). Docs: `docs/registro.md`,
+- Pruebas: `tests/*.test.mjs` (12 archivos de prueba, 63 pruebas). Docs: `docs/registro.md`,
   `docs/intentos.json`, `docs/H0a-contratos.md`,
   `docs/presupuesto-ronda1.md`, `docs/decisiones.md`.
 - Privados (no versionar): `.env`, `data/`.

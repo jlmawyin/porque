@@ -103,3 +103,63 @@
   ajenos en consola (diseño previo: lista pública sin filtro).
 - Pendiente: checkpoint local → Fase 2 textos → Fase 3 ES/EN →
   verificación final + push.
+
+## Fase 2 textos con identidad (2026-11-04, encargo unificado)
+
+- Pretendido: aplicar referencias de voz "porque somos panas" sin
+  rediseño ni cambio de distribución; botones con acciones claras.
+- Terminado: portada ya traía hero/sub (conservados); registro con
+  "Crea tu espacio y comparte lo que haces." + sub con panas;
+  negocios con "Detrás de cada producto…"; compartir con "Corre la
+  voz…"; confirmación de apoyo con "Gracias por estar ahí…"
+  manteniendo etiqueta intención/simulación + nota honesta.
+  Limpieza: prefijo QR duplicado y "1 intenciones" pluralizado.
+  Sin historias, testimonios ni impacto inventados.
+- Archivos: `web/index.html`, `web/panel.html`,
+  `web/initiative.html` (solo textos).
+- Comandos: sin suite (textos de cliente; verificación visual en
+  recorrido final ES/EN).
+- Versión comprobada: sobre checkpoint ed710aa (verificación en
+  bloque final, mismo turno).
+- Pendiente: Fase 3 + verificación final (hecho debajo).
+
+## Fase 3 ES/EN + verificación final (2026-11-04, encargo unificado)
+
+- Pretendido: versión final bilingüe con selector visible y
+  accesible, diccionarios locales, cambio en vivo sin perder
+  campos/sesión ni publicar; recorrido ES+EN en 390px y escritorio.
+- Terminado: `web/i18n.mjs` nuevo (resolveLang + t + applyStatic +
+  initI18n, ~200 claves ES/EN con paridad probada); selector
+  Español | English en las 3 páginas (sin banderas, con estilo de
+  navegación); prioridad ?lang→guardada→navegador→es; elección
+  explícita recordada + ?lang compartible sin recarga; Why Porque?
+  solo en EN; USD sin conversión; contenidos de usuarios sin
+  traducir; limitaciones reales en cada idioma (notas offline,
+  espejo, QR, palabra-número ES en precio documentada por dígitos
+  en EN); SW porque-v3 con i18n.mjs en shell.
+- Archivos: `web/i18n.mjs` (nuevo), `tests/i18n.test.mjs` (nuevo,
+  registrado en `npm test`), `web/index.html`, `web/panel.html`,
+  `web/panel.js`, `web/initiative.html`, `web/styles.css`,
+  `web/sw.js`, `package.json`, `docs/*`.
+- Comandos y resultados: `node --check` panel/i18n/sw + scripts en
+  línea OK; `npm test` 63/63 fail 0 (12 archivos); playwright EN:
+  portada (?lang, selector, Why, lang, guardada), registro, cambio
+  ES↔EN a mitad de formulario (campos+sesión+suciedad intactos),
+  guardar→revisar→publicar v1, pública con QR+descarga, intención
+  201 con resumen singular; regresión ES (portada, pública,
+  singular); 390px EN (portada, pública); consola `/`+`/i/` 0
+  errores, `/panel` 0 errores; SW caché única porque-v3; reinicio
+  sin base: persistencia F1+EN, nota local EN y motivo QR EN;
+  QR re-decodificado exacto sobre código final.
+- Versión comprobada: código final F3 (este commit).
+- Evidencia: `.playwright-cli/f3-portada-en-desktop.png`,
+  `f3-why-porque-en.png`, `f3-portada-en-390.png`,
+  `f3-panel-en-desktop.png`, `f3-publica-en-desktop.png`,
+  `f3-publica-en-390.png`, `f3-portada-es-desktop.png`,
+  `f3-publica-es-desktop.png` (+ serie f1-* del cierre funcional).
+- Notas: mensajes transitorios a mitad de pantalla conservan su
+  idioma hasta la próxima acción (estándar); detalles de error del
+  servidor se muestran tal cual con marco en idioma local;
+  manifiesto conserva lang nominal "es" (estático). Contadores de
+  intentos sin cambios (todo resuelto, 0 fallos nuevos).
+- Pendiente: commit de cierre + push normal + informe (este turno).

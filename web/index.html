@@ -3,22 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Porque — Porque somos panas</title>
-<meta name="description" content="Un espacio para recibir apoyo y ofrecer lo que sabes hacer.">
+<title data-i18n="metaTitle">Porque — Porque somos panas</title>
+<meta name="description" content="Un espacio para recibir apoyo y ofrecer lo que sabes hacer." data-i18n-content="metaDesc">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="stylesheet" href="/styles.css">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 </head>
 <body>
-<a class="salto" href="#explorar">Saltar a Explorar</a>
+<a class="salto" href="#explorar" data-i18n="skipExplore">Saltar a Explorar</a>
 <header class="barra">
   <div class="contenedor">
     <p class="marca"><a href="#portada">Porque</a></p>
-    <nav aria-label="Principal">
-      <a href="#explorar">Explorar</a>
-      <a href="#como-funciona">Cómo funciona</a>
-      <a href="/panel">Entrar</a>
-      <a class="destacado" href="/panel?a=registro">Crear iniciativa</a>
+    <nav aria-label="Principal" data-i18n-aria="navMain">
+      <a href="#explorar" data-i18n="navExplore">Explorar</a>
+      <a href="#como-funciona" data-i18n="navHow">Cómo funciona</a>
+      <a href="/panel" data-i18n="navLogin">Entrar</a>
+      <a class="destacado" href="/panel?a=registro" data-i18n="navCreate">Crear iniciativa</a>
+      <span class="idioma" role="group" aria-label="Idioma" data-i18n-aria="langGroup"><button type="button" data-lang="es" aria-pressed="true">Español</button><span class="sep" aria-hidden="true">|</span><button type="button" data-lang="en" aria-pressed="false">English</button></span>
     </nav>
   </div>
 </header>
@@ -27,37 +28,45 @@
   <section class="hero sin-borde" aria-labelledby="hero-titulo">
     <div class="contenedor">
       <div>
-        <p class="aviso-demo">Demostración</p>
-        <h1 id="hero-titulo">Porque somos panas.</h1>
-        <p class="hero-sub">Apoya una causa. Impulsa un negocio.</p>
-        <p>Un espacio para recibir apoyo y ofrecer lo que sabes hacer.</p>
+        <p class="aviso-demo" data-i18n="demo">Demostración</p>
+        <h1 id="hero-titulo" data-i18n="heroTitle">Porque somos panas.</h1>
+        <p class="hero-sub" data-i18n="heroSub">Apoya una causa. Impulsa un negocio.</p>
+        <p data-i18n="metaDesc">Un espacio para recibir apoyo y ofrecer lo que sabes hacer.</p>
         <div class="ctas">
-          <a class="boton" href="#explorar">Quiero apoyar</a>
-          <a class="boton secundario" href="/panel?a=registro">Crear mi iniciativa</a>
+          <a class="boton" href="#explorar" data-i18n="ctaSupport">Quiero apoyar</a>
+          <a class="boton secundario" href="/panel?a=registro" data-i18n="ctaCreate">Crear mi iniciativa</a>
         </div>
       </div>
       <figure class="hero-figura">
-        <img src="/img/apoyo.svg" alt="Ilustración original: mesa de mercado con cerámica, pan y textiles artesanales bajo un toldo con un corazón" width="640" height="480">
+        <img src="/img/apoyo.svg" alt="Ilustración original: mesa de mercado con cerámica, pan y textiles artesanales bajo un toldo con un corazón" data-i18n-alt="heroAlt" width="640" height="480">
       </figure>
+    </div>
+  </section>
+
+  <section id="why-porque" aria-labelledby="why-titulo" hidden>
+    <div class="contenedor">
+      <h2 id="why-titulo">Why Porque?</h2>
+      <p class="nota">Porque means 'because' in Spanish. Panas is a Latin American slang word for friends. 'Porque somos panas' means 'because we're friends'—the idea behind helping one another.</p>
     </div>
   </section>
 
   <section id="explorar" aria-labelledby="explorar-titulo">
     <div class="contenedor">
-      <h2 id="explorar-titulo">Explorar</h2>
+      <h2 id="explorar-titulo" data-i18n="exploreTitle">Explorar</h2>
 
-      <h3 id="titulo-iniciativas">Iniciativas que puedes apoyar</h3>
-      <div id="lista-iniciativas" aria-live="polite"><p>Cargando…</p></div>
+      <h3 id="titulo-iniciativas" data-i18n="initListTitle">Iniciativas que puedes apoyar</h3>
+      <div id="lista-iniciativas" aria-live="polite"><p data-i18n="loading">Cargando…</p></div>
 
-      <h3 id="titulo-productos">Productos y servicios que puedes conocer</h3>
-      <div id="catalogo" aria-live="polite"><p>Cargando…</p></div>
+      <h3 id="titulo-productos" data-i18n="prodListTitle">Productos y servicios que puedes conocer</h3>
+      <p class="nota" data-i18n="bizNote">Detrás de cada producto hay alguien echándole ganas.</p>
+      <div id="catalogo" aria-live="polite"><p data-i18n="loading">Cargando…</p></div>
 
       <div id="consulta" hidden>
-        <h3>Preparar consulta</h3>
+        <h3 data-i18n="consultTitle">Preparar consulta</h3>
         <p id="consulta-producto"></p>
-        <button id="btn-copiar" class="big">Copiar enlace</button>
-        <button id="btn-chat" class="big">Abrir chat</button>
-        <p class="nota">Abrir un chat no confirma envío, recepción ni aceptación.</p>
+        <button id="btn-copiar" class="big" data-i18n="copyLink">Copiar enlace</button>
+        <button id="btn-chat" class="big" data-i18n="openChat">Abrir chat</button>
+        <p class="nota" data-i18n="chatNote">Abrir un chat no confirma envío, recepción ni aceptación.</p>
         <p id="consulta-estado" role="status"></p>
       </div>
     </div>
@@ -65,27 +74,29 @@
 
   <section id="como-funciona" aria-labelledby="como-titulo">
     <div class="contenedor">
-      <h2 id="como-titulo">Cómo funciona</h2>
+      <h2 id="como-titulo" data-i18n="howTitle">Cómo funciona</h2>
       <ol class="pasos">
-        <li><strong>Crea</strong> tu borrador con lo que sabes hacer.</li>
-        <li><strong>Revisa</strong> el contenido exacto antes de publicar.</li>
-        <li><strong>Publica</strong> tu iniciativa en el catálogo.</li>
-        <li><strong>Comparte</strong> el enlace para recibir consultas.</li>
+        <li><strong data-i18n="how1b">Crea</strong> <span data-i18n="how1t">tu borrador con lo que sabes hacer.</span></li>
+        <li><strong data-i18n="how2b">Revisa</strong> <span data-i18n="how2t">el contenido exacto antes de publicar.</span></li>
+        <li><strong data-i18n="how3b">Publica</strong> <span data-i18n="how3t">tu iniciativa en el catálogo.</span></li>
+        <li><strong data-i18n="how4b">Comparte</strong> <span data-i18n="how4t">el enlace para recibir consultas.</span></li>
       </ol>
     </div>
   </section>
 
   <section id="crear-iniciativa" aria-labelledby="crear-titulo">
     <div class="contenedor">
-      <h2 id="crear-titulo">¿Tienes algo que ofrecer?</h2>
-      <p>Crea tu espacio en Porque y publica tu iniciativa o tus productos en pocos pasos.</p>
-      <p><a class="boton" href="/panel?a=registro">Crear mi iniciativa</a></p>
+      <h2 id="crear-titulo" data-i18n="offerTitle">¿Tienes algo que ofrecer?</h2>
+      <p data-i18n="offerP">Crea tu espacio en Porque y publica tu iniciativa o tus productos en pocos pasos.</p>
+      <p><a class="boton" href="/panel?a=registro" data-i18n="ctaCreate">Crear mi iniciativa</a></p>
     </div>
   </section>
 </main>
 
-<footer><div class="contenedor"><p>Porque — porque somos panas · <a href="/panel">Mi espacio</a></p></div></footer>
+<footer><div class="contenedor"><p><span data-i18n="footerBrand">Porque — porque somos panas</span> · <a href="/panel" data-i18n="mySpace">Mi espacio</a></p></div></footer>
 <script type="module">
+import { t, modalityName, initI18n } from '/i18n.mjs';
+const L = () => getLang();
 const WA_TEMPLATE = 'https://wa.me/?text={text}'; // formato por verificar oficialmente
 const main = document.getElementById('catalogo');
 async function api(path, opts = {}) {
@@ -94,7 +105,7 @@ async function api(path, opts = {}) {
 }
 function visualAlt(nombre) {
   const letra = String(nombre ?? '?').trim().charAt(0).toUpperCase() || '?';
-  return `<div class="visual-alt" role="img" aria-label="Ilustración decorativa">${escapeHtml(letra)}</div>`;
+  return `<div class="visual-alt" role="img" aria-label="${escapeHtml(t(L(), 'visualAlt'))}">${escapeHtml(letra)}</div>`;
 }
 function card(p) {
   const precio = Number.isInteger(p.priceCents)
@@ -105,26 +116,26 @@ function card(p) {
     <h3>${escapeHtml(p.name)}</h3>
     ${precio}
     <p>${escapeHtml(p.description || '')}</p>
-    ${p.imageAi ? '<p><span class="etiqueta-ia">Imagen ilustrativa generada con IA</span></p>' : ''}
-    <button class="big" data-consulta="${p.id}" data-nombre="${escapeHtml(p.name)}">Consultar</button>
+    ${p.imageAi ? `<p><span class="etiqueta-ia">${escapeHtml(t(L(), 'aiImg'))}</span></p>` : ''}
+    <button class="big" data-consulta="${p.id}" data-nombre="${escapeHtml(p.name)}">${escapeHtml(t(L(), 'inquire'))}</button>
   </article>`;
 }
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 async function cargar() {
   const data = await api('/api/products').catch(() => null);
-  if (!data?.ok) { main.innerHTML = '<p>Sin conexión o sin productos. Revisa tu conexión e inténtalo de nuevo.</p>'; return; }
-  main.innerHTML = data.products.length ? data.products.map(card).join('') : '<p>Aún no hay productos publicados. Vuelve pronto o <a href="/panel?a=registro">crea tu iniciativa</a>.</p>';
+  if (!data?.ok) { main.innerHTML = `<p>${escapeHtml(t(L(), 'noConnProducts'))}</p>`; return; }
+  main.innerHTML = data.products.length ? data.products.map(card).join('') : `<p>${escapeHtml(t(L(), 'noProductsPre'))} <a href="/panel?a=registro">${escapeHtml(t(L(), 'noProductsLink'))}</a>.</p>`;
 }
-let consultaId = null, consultaUrl = '';
+let consultaId = null, consultaUrl = '', consultaNombre = '';
 main.addEventListener('click', async (e) => {
   const b = e.target.closest('[data-consulta]');
   if (!b) return;
   const data = await api('/api/inquiries', { method: 'POST', headers: {'content-type':'application/json'},
     body: JSON.stringify({ productId: b.dataset.consulta, channel: 'link', clientOpId: crypto.randomUUID() }) });
   if (!data?.ok) return;
-  consultaId = data.inquiry.id; consultaUrl = data.url;
+  consultaId = data.inquiry.id; consultaUrl = data.url; consultaNombre = b.dataset.nombre;
   document.getElementById('consulta').hidden = false;
-  document.getElementById('consulta-producto').textContent = `Consulta sobre: ${b.dataset.nombre}`;
+  document.getElementById('consulta-producto').textContent = t(L(), 'consultingAbout', { name: consultaNombre });
   document.getElementById('consulta-estado').textContent = '';
   document.getElementById('consulta').scrollIntoView({ block: 'nearest' });
 });
@@ -133,31 +144,30 @@ document.getElementById('btn-copiar').addEventListener('click', async () => {
   const estado = document.getElementById('consulta-estado');
   try {
     await navigator.clipboard.writeText(absUrl(consultaUrl));
-    estado.textContent = 'Enlace copiado.';
+    estado.textContent = t(L(), 'linkCopied');
   } catch {
-    estado.textContent = 'No se pudo copiar. Enlace: ' + absUrl(consultaUrl);
+    estado.textContent = t(L(), 'copyFail', { url: absUrl(consultaUrl) });
   }
 });
 document.getElementById('btn-chat').addEventListener('click', async () => {
-  const texto = encodeURIComponent(`Hola, me interesa: ${document.getElementById('consulta-producto').textContent} ${absUrl(consultaUrl)}`);
+  const texto = encodeURIComponent(t(L(), 'chatHello', { text: document.getElementById('consulta-producto').textContent, url: absUrl(consultaUrl) }));
   window.open(WA_TEMPLATE.replace('{text}', texto), '_blank', 'noopener');
   await api(`/api/inquiries/${consultaId}/opened`, { method: 'POST' });
-  document.getElementById('consulta-estado').textContent = 'Chat abierto (no confirma envío ni respuesta).';
+  document.getElementById('consulta-estado').textContent = t(L(), 'chatOpen');
 });
-const MODALIDAD = { donations: 'Donaciones', business: 'Negocio', both: 'Ambas' };
 const listaInit = document.getElementById('lista-iniciativas');
 function tarjetaInit(i) {
-  const modalidad = MODALIDAD[i.modality] ?? 'Sin definir';
+  const modalidad = i.modality ? modalityName(L(), i.modality) : t(L(), 'modalityNone');
   const visual = i.imageRef
-    ? `<img src="${escapeHtml(i.imageRef)}" alt="Imagen ilustrativa de la iniciativa" loading="lazy">`
+    ? `<img src="${escapeHtml(i.imageRef)}" alt="${escapeHtml(t(L(), 'initImgAlt'))}" loading="lazy">`
     : visualAlt(i.name);
   return `<article class="ficha">
     ${visual}
-    <h3>${escapeHtml(i.name ?? 'Iniciativa sin nombre')}</h3>
+    <h3>${escapeHtml(i.name ?? t(L(), 'initNoName'))}</h3>
     <p><span class="etiqueta-modalidad">${escapeHtml(modalidad)}</span></p>
     <p>${escapeHtml((i.description ?? '').slice(0, 160))}</p>
-    ${i.imageAi ? '<p><span class="etiqueta-ia">Imagen ilustrativa generada con IA</span></p>' : ''}
-    <a class="boton" href="/i/${escapeHtml(i.id)}">Conocer iniciativa</a>
+    ${i.imageAi ? `<p><span class="etiqueta-ia">${escapeHtml(t(L(), 'aiImg'))}</span></p>` : ''}
+    <a class="boton" href="/i/${escapeHtml(i.id)}">${escapeHtml(t(L(), 'meetInit'))}</a>
   </article>`;
 }
 async function cargarIniciativas() {
@@ -166,17 +176,27 @@ async function cargarIniciativas() {
     const r = await fetch('/api/initiatives');
     data = await r.json();
   } catch {
-    listaInit.innerHTML = '<p>Sin conexión: las iniciativas no están disponibles ahora mismo.</p>';
+    listaInit.innerHTML = `<p>${escapeHtml(t(L(), 'initsOffline'))}</p>`;
     return;
   }
   if (!data?.ok || !Array.isArray(data.initiatives)) {
-    listaInit.innerHTML = '<p>Las iniciativas públicas aún no están disponibles. Vuelve pronto.</p>';
+    listaInit.innerHTML = `<p>${escapeHtml(t(L(), 'initsDown'))}</p>`;
     return;
   }
   listaInit.innerHTML = data.initiatives.length
     ? data.initiatives.map(tarjetaInit).join('')
-    : '<p>Aún no hay iniciativas publicadas. Vuelve pronto o <a href="/panel?a=registro">crea la primera</a>.</p>';
+    : `<p>${escapeHtml(t(L(), 'noInitsPre'))} <a href="/panel?a=registro">${escapeHtml(t(L(), 'noInitsLink'))}</a>.</p>`;
 }
+function refreshLang(lang) {
+  document.getElementById('why-porque').hidden = lang !== 'en';
+  cargar();
+  cargarIniciativas();
+  if (!document.getElementById('consulta').hidden && consultaNombre) {
+    document.getElementById('consulta-producto').textContent = t(lang, 'consultingAbout', { name: consultaNombre });
+  }
+}
+const getLang = initI18n(refreshLang);
+document.getElementById('why-porque').hidden = getLang() !== 'en';
 cargar();
 cargarIniciativas();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
