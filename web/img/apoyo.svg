@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-labelledby="apoyo-titulo apoyo-desc">
+  <title id="apoyo-titulo">Puesto de mercado con productos artesanales</title>
+  <desc id="apoyo-desc">Ilustración original: una mesa de madera con vasijas de cerámica, pan artesanal, textiles doblados y una planta, bajo un toldo verde con un corazón terracota.</desc>
+  <rect x="0" y="0" width="640" height="480" rx="24" fill="#EFECE3"/>
+  <circle cx="520" cy="90" r="44" fill="#B64B30" opacity="0.18"/>
+  <!-- Toldo -->
+  <g>
+    <rect x="70" y="60" width="500" height="26" rx="10" fill="#0B5D4B"/>
+    <rect x="96" y="86" width="14" height="46" fill="#084A3C"/>
+    <rect x="530" y="86" width="14" height="46" fill="#084A3C"/>
+    <g fill="#B64B30">
+      <rect x="120" y="60" width="34" height="26"/>
+      <rect x="188" y="60" width="34" height="26"/>
+      <rect x="256" y="60" width="34" height="26"/>
+      <rect x="324" y="60" width="34" height="26"/>
+      <rect x="392" y="60" width="34" height="26"/>
+      <rect x="460" y="60" width="34" height="26"/>
+    </g>
+  </g>
+  <!-- Corazón colgante -->
+  <g>
+    <line x1="320" y1="86" x2="320" y2="120" stroke="#17332D" stroke-width="4"/>
+    <path d="M320 168c-22-16-44-30-44-52 0-14 10-24 23-24 8 0 15 4 21 11 6-7 13-11 21-11 13 0 23 10 23 24 0 22-22 36-44 52z" fill="#B64B30"/>
+  </g>
+  <!-- Mesa -->
+  <rect x="110" y="300" width="420" height="26" rx="8" fill="#7A5C3E"/>
+  <rect x="140" y="326" width="22" height="94" fill="#5E4630"/>
+  <rect x="478" y="326" width="22" height="94" fill="#5E4630"/>
+  <rect x="110" y="410" width="420" height="14" rx="7" fill="#E4DECF"/>
+  <!-- Vasijas de cerámica -->
+  <g>
+    <ellipse cx="190" cy="298" rx="42" ry="8" fill="#0B5D4B" opacity="0.25"/>
+    <path d="M158 250c0-8 6-12 10-18 3-5 2-9 2-14h40c0 5-1 9 2 14 4 6 10 10 10 18 0 28-16 48-32 48s-32-20-32-48z" fill="#B64B30"/>
+    <rect x="158" y="258" width="64" height="10" fill="#F7F5EF" opacity="0.55"/>
+    <ellipse cx="285" cy="298" rx="34" ry="7" fill="#0B5D4B" opacity="0.25"/>
+    <path d="M262 262h46c4 12 8 20 8 30 0 20-12 32-31 32s-31-12-31-32c0-10 4-18 8-30z" fill="#0B5D4B"/>
+    <rect x="262" y="270" width="46" height="8" fill="#F7F5EF" opacity="0.4"/>
+  </g>
+  <!-- Pan artesanal -->
+  <g>
+    <ellipse cx="380" cy="300" rx="52" ry="8" fill="#0B5D4B" opacity="0.25"/>
+    <ellipse cx="368" cy="286" rx="34" ry="16" fill="#C98A4B"/>
+    <ellipse cx="404" cy="290" rx="28" ry="14" fill="#D9A25F"/>
+    <path d="M350 280l8-6M366 276l8-6M382 278l8-6" stroke="#8A5A28" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <!-- Textiles doblados -->
+  <g>
+    <rect x="440" y="252" width="72" height="20" rx="6" fill="#0B5D4B"/>
+    <rect x="440" y="274" width="72" height="20" rx="6" fill="#B64B30"/>
+    <rect x="452" y="258" width="48" height="6" rx="3" fill="#F7F5EF" opacity="0.5"/>
+    <rect x="452" y="280" width="48" height="6" rx="3" fill="#F7F5EF" opacity="0.5"/>
+  </g>
+  <!-- Planta -->
+  <g>
+    <path d="M96 330h44l-6 52H102z" fill="#B64B30"/>
+    <path d="M118 330c0-26-4-44-20-58 22-2 30 12 32 30 4-18 14-30 32-28-14 16-18 34-18 56z" fill="#0B5D4B"/>
+  </g>
+  <!-- Etiquetas de precio -->
+  <g font-family="Georgia, serif" font-size="16" font-weight="bold">
+    <rect x="150" y="196" width="62" height="30" rx="8" fill="#F7F5EF" stroke="#0B5D4B" stroke-width="2"/>
+    <text x="181" y="218" text-anchor="middle" fill="#0B5D4B">$5</text>
+    <rect x="352" y="216" width="62" height="30" rx="8" fill="#F7F5EF" stroke="#0B5D4B" stroke-width="2"/>
+    <text x="383" y="238" text-anchor="middle" fill="#0B5D4B">$2</text>
+  </g>
+</svg>

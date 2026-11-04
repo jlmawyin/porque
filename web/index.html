@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Porque — Porque somos panas</title>
+<meta name="description" content="Un espacio para recibir apoyo y ofrecer lo que sabes hacer.">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="salto" href="#explorar">Saltar a Explorar</a>
+<header class="barra">
+  <div class="contenedor">
+    <p class="marca"><a href="#portada">Porque</a></p>
+    <nav aria-label="Principal">
+      <a href="#explorar">Explorar</a>
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="/panel">Entrar</a>
+      <a class="destacado" href="/panel?a=registro">Crear iniciativa</a>
+    </nav>
+  </div>
+</header>
+
+<main id="portada">
+  <section class="hero sin-borde" aria-labelledby="hero-titulo">
+    <div class="contenedor">
+      <div>
+        <p class="aviso-demo">Demostración</p>
+        <h1 id="hero-titulo">Porque somos panas.</h1>
+        <p class="hero-sub">Apoya una causa. Impulsa un negocio.</p>
+        <p>Un espacio para recibir apoyo y ofrecer lo que sabes hacer.</p>
+        <div class="ctas">
+          <a class="boton" href="#explorar">Quiero apoyar</a>
+          <a class="boton secundario" href="/panel?a=registro">Crear mi iniciativa</a>
+        </div>
+      </div>
+      <figure class="hero-figura">
+        <img src="/img/apoyo.svg" alt="Ilustración original: mesa de mercado con cerámica, pan y textiles artesanales bajo un toldo con un corazón" width="640" height="480">
+      </figure>
+    </div>
+  </section>
+
+  <section id="explorar" aria-labelledby="explorar-titulo">
+    <div class="contenedor">
+      <h2 id="explorar-titulo">Explorar</h2>
+
+      <h3 id="titulo-iniciativas">Iniciativas que puedes apoyar</h3>
+      <div id="lista-iniciativas" aria-live="polite"><p>Cargando…</p></div>
+
+      <h3 id="titulo-productos">Productos y servicios que puedes conocer</h3>
+      <div id="catalogo" aria-live="polite"><p>Cargando…</p></div>
+
+      <div id="consulta" hidden>
+        <h3>Preparar consulta</h3>
+        <p id="consulta-producto"></p>
+        <button id="btn-copiar" class="big">Copiar enlace</button>
+        <button id="btn-chat" class="big">Abrir chat</button>
+        <p class="nota">Abrir un chat no confirma envío, recepción ni aceptación.</p>
+        <p id="consulta-estado" role="status"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="como-funciona" aria-labelledby="como-titulo">
+    <div class="contenedor">
+      <h2 id="como-titulo">Cómo funciona</h2>
+      <ol class="pasos">
+        <li><strong>Crea</strong> tu borrador con lo que sabes hacer.</li>
+        <li><strong>Revisa</strong> el contenido exacto antes de publicar.</li>
+        <li><strong>Publica</strong> tu iniciativa en el catálogo.</li>
+        <li><strong>Comparte</strong> el enlace para recibir consultas.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="crear-iniciativa" aria-labelledby="crear-titulo">
+    <div class="contenedor">
+      <h2 id="crear-titulo">¿Tienes algo que ofrecer?</h2>
+      <p>Crea tu espacio en Porque y publica tu iniciativa o tus productos en pocos pasos.</p>
+      <p><a class="boton" href="/panel?a=registro">Crear mi iniciativa</a></p>
+    </div>
+  </section>
+</main>
+
+<footer><div class="contenedor"><p>Porque — porque somos panas · <a href="/panel">Mi espacio</a></p></div></footer>
+<script type="module">
+const WA_TEMPLATE = 'https://wa.me/?text={text}'; // formato por verificar oficialmente
+const main = document.getElementById('catalogo');
+async function api(path, opts = {}) {
+  const r = await fetch(path, opts);
+  return r.json();
+}
+function visualAlt(nombre) {
+  const letra = String(nombre ?? '?').trim().charAt(0).toUpperCase() || '?';
+  return `<div class="visual-alt" role="img" aria-label="Ilustración decorativa">${escapeHtml(letra)}</div>`;
+}
+function card(p) {
+  const precio = Number.isInteger(p.priceCents)
+    ? `<p class="precio">$${(p.priceCents / 100).toFixed(2)} USD</p>`
+    : '';
+  return `<article class="ficha">
+    ${visualAlt(p.name)}
+    <h3>${escapeHtml(p.name)}</h3>
+    ${precio}
+    <p>${escapeHtml(p.description || '')}</p>
+    ${p.imageAi ? '<p><span class="etiqueta-ia">Imagen ilustrativa generada con IA</span></p>' : ''}
+    <button class="big" data-consulta="${p.id}" data-nombre="${escapeHtml(p.name)}">Consultar</button>
+  </article>`;
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+async function cargar() {
+  const data = await api('/api/products').catch(() => null);
+  if (!data?.ok) { main.innerHTML = '<p>Sin conexión o sin productos. Revisa tu conexión e inténtalo de nuevo.</p>'; return; }
+  main.innerHTML = data.products.length ? data.products.map(card).join('') : '<p>Aún no hay productos publicados. Vuelve pronto o <a href="/panel?a=registro">crea tu iniciativa</a>.</p>';
+}
+let consultaId = null, consultaUrl = '';
+main.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-consulta]');
+  if (!b) return;
+  const data = await api('/api/inquiries', { method: 'POST', headers: {'content-type':'application/json'},
+    body: JSON.stringify({ productId: b.dataset.consulta, channel: 'link', clientOpId: crypto.randomUUID() }) });
+  if (!data?.ok) return;
+  consultaId = data.inquiry.id; consultaUrl = data.url;
+  document.getElementById('consulta').hidden = false;
+  document.getElementById('consulta-producto').textContent = `Consulta sobre: ${b.dataset.nombre}`;
+  document.getElementById('consulta-estado').textContent = '';
+  document.getElementById('consulta').scrollIntoView({ block: 'nearest' });
+});
+const absUrl = (u) => new URL(u, location.origin).href;
+document.getElementById('btn-copiar').addEventListener('click', async () => {
+  const estado = document.getElementById('consulta-estado');
+  try {
+    await navigator.clipboard.writeText(absUrl(consultaUrl));
+    estado.textContent = 'Enlace copiado.';
+  } catch {
+    estado.textContent = 'No se pudo copiar. Enlace: ' + absUrl(consultaUrl);
+  }
+});
+document.getElementById('btn-chat').addEventListener('click', async () => {
+  const texto = encodeURIComponent(`Hola, me interesa: ${document.getElementById('consulta-producto').textContent} ${absUrl(consultaUrl)}`);
+  window.open(WA_TEMPLATE.replace('{text}', texto), '_blank', 'noopener');
+  await api(`/api/inquiries/${consultaId}/opened`, { method: 'POST' });
+  document.getElementById('consulta-estado').textContent = 'Chat abierto (no confirma envío ni respuesta).';
+});
+const MODALIDAD = { donations: 'Donaciones', business: 'Negocio', both: 'Ambas' };
+const listaInit = document.getElementById('lista-iniciativas');
+function tarjetaInit(i) {
+  const modalidad = MODALIDAD[i.modality] ?? 'Sin definir';
+  const visual = i.imageRef
+    ? `<img src="${escapeHtml(i.imageRef)}" alt="Imagen ilustrativa de la iniciativa" loading="lazy">`
+    : visualAlt(i.name);
+  return `<article class="ficha">
+    ${visual}
+    <h3>${escapeHtml(i.name ?? 'Iniciativa sin nombre')}</h3>
+    <p><span class="etiqueta-modalidad">${escapeHtml(modalidad)}</span></p>
+    <p>${escapeHtml((i.description ?? '').slice(0, 160))}</p>
+    ${i.imageAi ? '<p><span class="etiqueta-ia">Imagen ilustrativa generada con IA</span></p>' : ''}
+    <a class="boton" href="/i/${escapeHtml(i.id)}">Conocer iniciativa</a>
+  </article>`;
+}
+async function cargarIniciativas() {
+  let data = null;
+  try {
+    const r = await fetch('/api/initiatives');
+    data = await r.json();
+  } catch {
+    listaInit.innerHTML = '<p>Sin conexión: las iniciativas no están disponibles ahora mismo.</p>';
+    return;
+  }
+  if (!data?.ok || !Array.isArray(data.initiatives)) {
+    listaInit.innerHTML = '<p>Las iniciativas públicas aún no están disponibles. Vuelve pronto.</p>';
+    return;
+  }
+  listaInit.innerHTML = data.initiatives.length
+    ? data.initiatives.map(tarjetaInit).join('')
+    : '<p>Aún no hay iniciativas publicadas. Vuelve pronto o <a href="/panel?a=registro">crea la primera</a>.</p>';
+}
+cargar();
+cargarIniciativas();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+</script>
+</body>
+</html>

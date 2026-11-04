@@ -1,0 +1,9 @@
+# Generado local: BD, secreto, entorno (nunca versionar).
+data/*.sqlite*
+data/*.sqlite*-journal
+data/*.sqlite*-wal
+data/*.sqlite*-shm
+data/.secret
+.env
+node_modules/
+.playwright-cli/

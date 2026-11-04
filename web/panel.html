@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Porque — Mi espacio</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/styles.css">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+</head>
+<body>
+<div id="offline-bar" role="alert">Sin conexión: edición local con espejo. Nada se publica solo.</div>
+<header class="barra">
+  <div class="contenedor">
+    <p class="marca"><a href="/">Porque</a></p>
+    <nav aria-label="Principal">
+      <a href="/#explorar">Explorar</a>
+      <a href="/#como-funciona">Cómo funciona</a>
+    </nav>
+  </div>
+</header>
+
+<main class="contenedor">
+  <h1>Mi espacio</h1>
+  <p class="sub">Español · USD</p>
+
+<section id="login-sec" class="tarjeta" aria-labelledby="login-titulo">
+  <h2 id="login-titulo">Crea tu espacio en Porque</h2>
+  <p class="nota">Demostración: el correo no se verifica.</p>
+  <div class="modos" role="group" aria-label="Tipo de acceso">
+    <button id="tab-entrar" class="big" aria-pressed="true">Entrar</button>
+    <button id="tab-registro" class="big" aria-pressed="false">Crear cuenta</button>
+  </div>
+  <div id="form-entrar">
+    <label>Correo
+      <input id="login-email" type="email" autocomplete="email">
+    </label>
+    <label>Contraseña
+      <input id="login-password" type="password" autocomplete="current-password">
+    </label>
+    <p id="login-error" class="error" role="alert" hidden></p>
+    <button id="btn-login-account" class="big">Entrar</button>
+  </div>
+  <div id="form-registro" hidden>
+    <label>Nombre público
+      <input id="reg-name" autocomplete="nickname" maxlength="80">
+    </label>
+    <label>Correo
+      <input id="reg-email" type="email" autocomplete="email">
+    </label>
+    <label>Contraseña (12 o más caracteres)
+      <input id="reg-password" type="password" autocomplete="new-password">
+    </label>
+    <p id="reg-error" class="error" role="alert" hidden></p>
+    <button id="btn-register" class="big">Crear cuenta y entrar</button>
+  </div>
+  <p id="login-msg" role="status"></p>
+  <details>
+    <summary>Acceso anterior con secreto (demo)</summary>
+    <label>Secreto de acceso <input id="login-secret" type="password" autocomplete="off"></label>
+    <button id="btn-login" class="big">Entrar</button>
+  </details>
+</section>
+
+<div id="app" hidden>
+  <div class="ctas">
+    <button id="btn-logout" class="big">Salir</button>
+    <button id="btn-mirror" class="big">Recuperar espejo local</button>
+  </div>
+
+  <nav aria-label="Secciones de Mi espacio">
+    <ol class="orientacion">
+      <li><a href="#sec-iniciativa"><strong>1 · Mi iniciativa</strong><span>Tus datos y presentación</span></a></li>
+      <li><a href="#sec-productos"><strong>2 · Productos y servicios</strong><span>Lo que ofreces</span></a></li>
+      <li><a href="#apoyos-sec"><strong>3 · Apoyos</strong><span>Mensajes que recibes</span></a></li>
+      <li><a href="#compartir-sec"><strong>4 · Compartir</strong><span>Tu página pública</span></a></li>
+    </ol>
+  </nav>
+
+  <section id="sec-iniciativa" class="bloque" aria-labelledby="titulo-iniciativa">
+    <h2 id="titulo-iniciativa">1 · Mi iniciativa</h2>
+    <p class="nota">Elige tu borrador de iniciativa para completar sus datos. La meta es solo una meta pública, no fondos recaudados.</p>
+    <button id="btn-new-initiative" class="big">Nueva iniciativa</button>
+    <ul id="drafts-initiative" class="lista-borradores" aria-live="polite"></ul>
+  </section>
+
+  <section id="sec-productos" class="bloque" aria-labelledby="titulo-productos">
+    <h2 id="titulo-productos">2 · Productos y servicios</h2>
+    <p class="nota">Elige un borrador para completar nombre, precio y descripción.</p>
+    <button id="btn-new" class="big">Nuevo producto o servicio</button>
+    <ul id="drafts-products" class="lista-borradores" aria-live="polite"></ul>
+  </section>
+
+  <section id="apoyos-sec" class="bloque" aria-labelledby="apoyos-titulo">
+    <h2 id="apoyos-titulo">3 · Apoyos</h2>
+    <p class="nota">Expresiones de apoyo e intenciones de tus iniciativas publicadas. No son fondos ni dinero recibido.</p>
+    <button id="btn-apoyos" class="big">Actualizar apoyos</button>
+    <div id="apoyos" aria-live="polite"><p class="nota">Inicia sesión para ver los apoyos.</p></div>
+  </section>
+
+  <section id="editor" class="bloque" hidden aria-labelledby="editor-titulo">
+    <h2 id="editor-titulo">Tus datos</h2>
+    <ol class="flujo" aria-label="Pasos para publicar">
+      <li><strong>1 · Datos</strong>Completa la información abajo.</li>
+      <li><strong>2 · Revisar</strong>Revisa tus cambios antes de publicar.</li>
+      <li><strong>3 · Publicar</strong>Confirma y comparte tu página.</li>
+    </ol>
+    <p id="draft-meta" role="status"></p>
+    <div id="product-modes" class="modos" role="group" aria-label="Modo de entrada">
+      <button data-mode="A" aria-pressed="false" class="big">Hablar</button>
+      <button data-mode="B" aria-pressed="false" class="big">Paso a paso</button>
+      <button data-mode="C" aria-pressed="true" class="big">Escribir o tocar</button>
+    </div>
+
+    <div id="mode-C">
+      <label>Nombre <input id="f-name"></label>
+      <div role="group" aria-label="Precio">
+        <p><strong>Precio</strong></p>
+        <button id="p-minus" class="big" aria-label="Bajar precio">−</button>
+        <button id="p-plus" class="big" aria-label="Subir precio">+</button>
+        <button data-quick="100" class="big">$1</button>
+        <button data-quick="500" class="big">$5</button>
+        <button data-quick="1000" class="big">$10</button>
+      </div>
+      <label>Entrada directa (p. ej. «cinco dólares») <input id="f-price-text" placeholder="cinco dólares"></label>
+      <p id="f-price-view"></p>
+      <label>Descripción <textarea id="f-desc" rows="3"></textarea></label>
+      <button id="btn-save-c" class="big">Guardar cambios</button>
+    </div>
+
+    <div id="mode-A" hidden>
+      <p id="mode-a-note" class="nota" hidden><strong>La modalidad se elige con los botones.</strong> El dictado solo propone nombre y descripción.</p>
+      <p id="grabando" hidden>● Grabando — <span id="rec-time">0</span>s</p>
+      <button id="btn-rec" class="big">Iniciar dictado</button>
+      <button id="btn-rec-stop" class="big" disabled>Terminar</button>
+      <button id="btn-rec-cancel" class="big" disabled>Cancelar</button>
+      <p id="rec-info" class="nota"></p>
+      <label>Texto para el doble de transcripción (prueba, no es voz real) <input id="fake-script" placeholder="Galletas, cinco dólares"></label>
+      <button id="btn-transcribe" class="big">Transcribir (doble)</button>
+      <div id="proposal" class="diff" hidden></div>
+    </div>
+
+    <div id="mode-B" hidden>
+      <p id="q-text" class="big" aria-live="polite"></p>
+      <button id="btn-speak" class="big">Leer pregunta en voz alta</button>
+      <button id="btn-repeat" class="big">Repetir</button>
+      <label>Respuesta <input id="q-answer"></label>
+      <button id="btn-answer" class="big">Guardar respuesta y continuar</button>
+    </div>
+
+    <div id="init-box" hidden>
+      <p><span class="aviso-demo">Mi iniciativa</span></p>
+      <label>Nombre de la iniciativa <input id="f-init-name"></label>
+      <div class="modos" role="group" aria-label="Modalidad de la iniciativa">
+        <button data-imode="donations" aria-pressed="false" class="big">Donaciones</button>
+        <button data-imode="business" aria-pressed="false" class="big">Negocio</button>
+        <button data-imode="both" aria-pressed="false" class="big">Ambas</button>
+      </div>
+      <p id="init-modality-view" aria-live="polite"></p>
+      <label>Presentación <textarea id="f-init-desc" rows="3"></textarea></label>
+      <label>Propósito <textarea id="f-purpose" rows="2"></textarea></label>
+      <label>Meta en USD (opcional, p. ej. 100) <input id="f-goal" inputmode="decimal" placeholder="100"></label>
+      <p id="f-goal-view"></p>
+      <button id="btn-save-init" class="big">Guardar iniciativa</button>
+    </div>
+
+    <div id="conflict" class="diff" hidden></div>
+
+    <h2>Revisión y publicación</h2>
+    <button id="btn-review" class="big">Revisar mis cambios</button>
+    <div id="review" class="diff" hidden></div>
+    <button id="btn-publish" class="big" hidden>Confirmar y publicar</button>
+    <p class="nota">Publicar exige confirmar el contenido exacto revisado. Guardar no publica.</p>
+    <details id="diagnostico-box">
+      <summary>Detalles técnicos (diagnóstico)</summary>
+      <p id="draft-tecnico" class="nota"></p>
+    </details>
+  </section>
+
+  <section id="compartir-sec" class="bloque" aria-labelledby="compartir-titulo">
+    <h2 id="compartir-titulo">4 · Compartir</h2>
+    <p class="nota">Aquí aparece tu página pública después de publicar. Compártela para recibir consultas y apoyos.</p>
+    <div id="publish-ok" hidden>
+      <p id="publish-ok-msg" role="status"></p>
+      <button id="btn-ver-pagina" class="big">Ver mi página</button>
+      <button id="btn-copiar-enlace" class="big">Copiar enlace</button>
+      <button id="btn-compartir-qr" class="big">Compartir/QR</button>
+      <p id="publish-ok-estado" role="status"></p>
+    </div>
+  </section>
+</div>
+</main>
+<footer><div class="contenedor"><p><a href="/">Catálogo público</a></p></div></footer>
+<script type="module" src="/panel.js"></script>
+</body>
+</html>
