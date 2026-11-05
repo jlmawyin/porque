@@ -275,4 +275,9 @@
 - Archivos: `web/index.html`, `web/i18n.mjs`, `web/styles.css`,
   `web/sw.js`, `tests/homepage.test.mjs` (nuevo),
   `package.json`, `README.md`, `docs/registro.md`.
-- Pendiente: commit/push/dist si Jorge lo pide.
+- Release: commit `c1ba786` + push normal a `main` (autorizado
+  por Jorge) + dist `porque-dist-c1ba786.zip` con humo
+  (200/200, demo 404/201, imagen→doble, WAV→503, portada con
+  `#demo-evento`). Sin secretos ni datos en el dist.
+- Pendiente: desplegar en el sitio (pasos entregados a Jorge);
+  llave Meta + ronda real 1 si se activa voz/imagen.
