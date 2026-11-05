@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Ilustración original: puesto de mercado con toldo, vasijas y pan">
+  <rect width="640" height="400" fill="#F7F5EF"/>
+  <rect x="90" y="120" width="460" height="26" rx="6" fill="#0B5D4B"/>
+  <g>
+    <rect x="90" y="146" width="57" height="34" fill="#B64B30"/>
+    <rect x="147" y="146" width="57" height="34" fill="#F7F5EF" stroke="#0B5D4B" stroke-width="4"/>
+    <rect x="204" y="146" width="57" height="34" fill="#B64B30"/>
+    <rect x="261" y="146" width="57" height="34" fill="#F7F5EF" stroke="#0B5D4B" stroke-width="4"/>
+    <rect x="318" y="146" width="58" height="34" fill="#B64B30"/>
+    <rect x="376" y="146" width="57" height="34" fill="#F7F5EF" stroke="#0B5D4B" stroke-width="4"/>
+    <rect x="433" y="146" width="57" height="34" fill="#B64B30"/>
+    <rect x="490" y="146" width="60" height="34" fill="#F7F5EF" stroke="#0B5D4B" stroke-width="4"/>
+  </g>
+  <rect x="110" y="180" width="14" height="130" fill="#0B5D4B"/>
+  <rect x="516" y="180" width="14" height="130" fill="#0B5D4B"/>
+  <rect x="130" y="286" width="380" height="18" rx="6" fill="#0B5D4B"/>
+  <path d="M180 286c0-30 12-44 12-66 0-10 6-16 14-16s14 6 14 16c0 22 12 36 12 66z" fill="#B64B30"/>
+  <ellipse cx="206" cy="204" rx="14" ry="6" fill="#0B5D4B" opacity="0.55"/>
+  <rect x="262" y="238" width="66" height="48" rx="10" fill="#0B5D4B"/>
+  <path d="M262 252h66" stroke="#F7F5EF" stroke-width="6"/>
+  <ellipse cx="400" cy="272" rx="42" ry="16" fill="#B64B30"/>
+  <path d="M368 268c8-8 20-12 32-12s24 4 32 12" fill="none" stroke="#F7F5EF" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="120" cy="90" r="9" fill="#B64B30" opacity="0.7"/>
+  <circle cx="530" cy="80" r="12" fill="#0B5D4B" opacity="0.5"/>
+</svg>

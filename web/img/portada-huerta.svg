@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Ilustración original: huerto con surcos, brote y sol">
+  <rect width="640" height="400" fill="#F7F5EF"/>
+  <circle cx="510" cy="100" r="44" fill="#B64B30"/>
+  <circle cx="510" cy="100" r="60" fill="#B64B30" opacity="0.2"/>
+  <path d="M60 320c120-26 240-40 260-40s140 14 260 40l-40 44H100z" fill="#0B5D4B"/>
+  <path d="M120 322c90-16 160-24 200-24s110 8 200 24" fill="none" stroke="#F7F5EF" stroke-width="8" stroke-linecap="round"/>
+  <path d="M180 326c70-10 110-14 140-14s70 4 140 14" fill="none" stroke="#F7F5EF" stroke-width="6" stroke-linecap="round" opacity="0.7"/>
+  <rect x="312" y="180" width="16" height="110" rx="8" fill="#0B5D4B"/>
+  <path d="M320 230c-34-4-58-24-66-56 32 2 56 22 66 56z" fill="#0B5D4B"/>
+  <path d="M320 205c34-4 58-24 66-56-32 2-56 22-66 56z" fill="#0B5D4B" opacity="0.75"/>
+  <circle cx="150" cy="150" r="9" fill="#0B5D4B" opacity="0.5"/>
+  <circle cx="210" cy="110" r="7" fill="#B64B30" opacity="0.7"/>
+  <circle cx="110" cy="220" r="7" fill="#B64B30" opacity="0.7"/>
+  <path d="M120 150c10-14 10-28 0-42M132 154c12-16 12-34 0-50" fill="none" stroke="#0B5D4B" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Ilustración original: dos manos sostienen un corazón">
+  <rect width="640" height="400" fill="#F7F5EF"/>
+  <circle cx="320" cy="185" r="120" fill="#0B5D4B" opacity="0.12"/>
+  <circle cx="320" cy="185" r="88" fill="#0B5D4B" opacity="0.16"/>
+  <path d="M320 232c-34-24-62-46-62-76 0-22 17-36 36-36 12 0 22 6 26 16 4-10 14-16 26-16 19 0 36 14 36 36 0 30-28 52-62 76z" fill="#B64B30"/>
+  <path d="M160 300c40-34 104-52 160-52s120 18 160 52c-50 22-104 32-160 32s-110-10-160-32z" fill="#0B5D4B"/>
+  <path d="M196 292c36-24 84-36 124-36s88 12 124 36" fill="none" stroke="#F7F5EF" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="120" cy="120" r="10" fill="#B64B30" opacity="0.7"/>
+  <circle cx="520" cy="110" r="14" fill="#0B5D4B" opacity="0.5"/>
+  <circle cx="548" cy="290" r="8" fill="#B64B30" opacity="0.7"/>
+  <circle cx="96" cy="262" r="7" fill="#0B5D4B" opacity="0.5"/>
+</svg>

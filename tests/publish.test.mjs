@@ -53,6 +53,29 @@ describe('publicación con confirmación exacta', async () => {
     assert.equal(a.body.product.id, b.body.product.id);
   });
 
+  it('estado publicado: null → coincide → difiere tras editar', async () => {
+    const id = await readyDraft(t);
+    const d0 = await t.api(`/api/drafts/${id}`);
+    assert.equal(d0.body.draft.published, null);
+    const rv = await t.api(`/api/drafts/${id}/review`, { method: 'POST' });
+    const pub = await t.api(`/api/drafts/${id}/publish`, {
+      method: 'POST',
+      body: JSON.stringify({ reviewToken: rv.body.review.reviewToken, contentHash: rv.body.review.contentHash, clientOpId: randomUUID() }),
+    });
+    assert.equal(pub.status, 201);
+    const d1 = await t.api(`/api/drafts/${id}`);
+    assert.equal(d1.body.draft.published.version, 1);
+    assert.equal(d1.body.draft.published.productId, pub.body.product.id);
+    assert.equal(d1.body.draft.published.draftRevision, d1.body.draft.revision);
+    assert.equal(d1.body.draft.published.contentHash, rv.body.review.contentHash);
+    await t.api(`/api/drafts/${id}`, {
+      method: 'PATCH', body: JSON.stringify({ baseRevision: d1.body.draft.revision, clientOpId: randomUUID(), patch: { description: 'cambiado' } }),
+    });
+    const d2 = await t.api(`/api/drafts/${id}`);
+    assert.equal(d2.body.draft.published.version, 1);
+    assert.notEqual(d2.body.draft.revision, d2.body.draft.published.draftRevision);
+  });
+
   it('consulta: preparar y abrir, sin estados de envío', async () => {
     const id = await readyDraft(t);
     const rv = await t.api(`/api/drafts/${id}/review`, { method: 'POST' });

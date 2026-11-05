@@ -56,6 +56,44 @@ describe('borrador: idempotencia, revisiones y conflictos', async () => {
     assert.equal(res.body.draft.name, 'Cliente');
   });
 
+  it('crear con initial: datos significativos en rev 1, sin filas vacías', async () => {
+    const c = await t.api('/api/drafts', {
+      method: 'POST',
+      body: JSON.stringify({ clientOpId: randomUUID(), kind: 'initiative', initial: { name: 'Huerta', description: 'Ficticia', modality: 'donations' } }),
+    });
+    assert.equal(c.status, 201);
+    assert.equal(c.body.draft.revision, 1);
+    assert.equal(c.body.draft.name, 'Huerta');
+    assert.equal(c.body.draft.modality, 'donations');
+    assert.equal(c.body.draft.published, null);
+  });
+
+  it('crear con initial inválido o vacío: 400 y no persiste fila', async () => {
+    const before = await t.api('/api/drafts');
+    const n0 = before.body.drafts.length;
+    const bad = await t.api('/api/drafts', {
+      method: 'POST', body: JSON.stringify({ clientOpId: randomUUID(), initial: { name: '' } }),
+    });
+    assert.equal(bad.status, 400);
+    const empty = await t.api('/api/drafts', {
+      method: 'POST', body: JSON.stringify({ clientOpId: randomUUID(), initial: {} }),
+    });
+    assert.equal(empty.status, 400);
+    const after = await t.api('/api/drafts');
+    assert.equal(after.body.drafts.length, n0);
+  });
+
+  it('crear con initial y misma clave: replay idempotente, una sola fila', async () => {
+    const key = randomUUID();
+    const payload = { clientOpId: key, initial: { name: 'Río', description: 'Ficticio' } };
+    const a = await t.api('/api/drafts', { method: 'POST', body: JSON.stringify(payload) });
+    const b = await t.api('/api/drafts', { method: 'POST', body: JSON.stringify(payload) });
+    assert.equal(a.status, 201);
+    assert.equal(b.body.idempotentReplay, true);
+    assert.equal(a.body.draft.id, b.body.draft.id);
+    assert.equal(b.body.draft.name, 'Río');
+  });
+
   it('editar invalida la revisión anterior', async () => {
     const c = await t.api('/api/drafts', { method: 'POST', body: JSON.stringify({ clientOpId: randomUUID() }) });
     const id = c.body.draft.id;

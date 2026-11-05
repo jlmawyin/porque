@@ -67,128 +67,169 @@
 <div id="app" hidden>
   <div class="ctas">
     <button id="btn-logout" class="big" data-i18n="btnLogout">Salir</button>
-    <button id="btn-mirror" class="big" data-i18n="btnMirror">Recuperar espejo local</button>
   </div>
 
-  <nav aria-label="Secciones de Mi espacio" data-i18n-aria="secNav">
-    <ol class="orientacion">
-      <li><a href="#sec-iniciativa"><strong data-i18n="s1t">1 · Mi iniciativa</strong><span data-i18n="s1s">Tus datos y presentación</span></a></li>
-      <li><a href="#sec-productos"><strong data-i18n="s2t">2 · Productos y servicios</strong><span data-i18n="s2s">Lo que ofreces</span></a></li>
-      <li><a href="#apoyos-sec"><strong data-i18n="s3t">3 · Apoyos</strong><span data-i18n="s3s">Mensajes que recibes</span></a></li>
-      <li><a href="#compartir-sec"><strong data-i18n="s4t">4 · Compartir</strong><span data-i18n="s4s">Tu página pública</span></a></li>
-    </ol>
-  </nav>
+  <section id="welcome" class="tarjeta" hidden aria-labelledby="welcome-titulo">
+    <h2 id="welcome-titulo" data-i18n="welcomeTitle">Vamos a crear tu espacio, porque somos panas.</h2>
+    <p><strong data-i18n="whatTitle">¿Qué quieres hacer?</strong></p>
+    <div class="ctas">
+      <button class="big" data-nuevo="support" data-i18n="optSupport">Recibir apoyo</button>
+      <button class="big" data-nuevo="products" data-i18n="optProducts">Ofrecer productos o servicios</button>
+      <button class="big" data-nuevo="both" data-i18n="optBoth">Ambas cosas</button>
+    </div>
+  </section>
 
-  <section id="sec-iniciativa" class="bloque" aria-labelledby="titulo-iniciativa">
-    <h2 id="titulo-iniciativa" data-i18n="s1t">1 · Mi iniciativa</h2>
+  <div id="views-bar">
+    <div class="modos" role="tablist" aria-label="Vistas de Mi espacio" data-i18n-aria="spaceTabs">
+      <button id="tab-view-init" class="big" role="tab" aria-selected="true" aria-controls="view-initiative" data-i18n="tabInit">Mi iniciativa</button>
+      <button id="tab-view-prod" class="big" role="tab" aria-selected="false" aria-controls="view-products" data-i18n="tabProd">Productos y servicios</button>
+      <button id="tab-view-sup" class="big" role="tab" aria-selected="false" aria-controls="view-apoyos" data-i18n="tabSup">Apoyos</button>
+      <button id="tab-view-share" class="big" role="tab" aria-selected="false" aria-controls="view-share" data-i18n="tabShare">Compartir</button>
+    </div>
+  </div>
+
+  <section id="view-initiative" role="tabpanel" aria-labelledby="tab-view-init" class="bloque">
+    <h2 data-i18n="myInits">Mis iniciativas</h2>
     <p class="nota" data-i18n="sec1Note">Elige tu borrador de iniciativa para completar sus datos. La meta es solo una meta pública, no fondos recaudados.</p>
     <button id="btn-new-initiative" class="big" data-i18n="btnNewInit">Nueva iniciativa</button>
     <ul id="drafts-initiative" class="lista-borradores" aria-live="polite"></ul>
+    <div id="resume-initiative"></div>
   </section>
 
-  <section id="sec-productos" class="bloque" aria-labelledby="titulo-productos">
-    <h2 id="titulo-productos" data-i18n="s2t">2 · Productos y servicios</h2>
+  <section id="view-products" role="tabpanel" aria-labelledby="tab-view-prod" class="bloque" hidden>
+    <h2 data-i18n="myProds">Mis productos y servicios</h2>
     <p class="nota" data-i18n="sec2Note">Elige un borrador para completar nombre, precio y descripción.</p>
     <button id="btn-new" class="big" data-i18n="btnNewProd">Nuevo producto o servicio</button>
     <ul id="drafts-products" class="lista-borradores" aria-live="polite"></ul>
+    <div id="resume-products"></div>
   </section>
 
-  <section id="apoyos-sec" class="bloque" aria-labelledby="apoyos-titulo">
-    <h2 id="apoyos-titulo" data-i18n="s3t">3 · Apoyos</h2>
+  <section id="view-apoyos" role="tabpanel" aria-labelledby="tab-view-sup" class="bloque" hidden>
+    <h2 data-i18n="tabSup">Apoyos</h2>
     <p class="nota" data-i18n="sec3Note">Expresiones de apoyo e intenciones de tus iniciativas publicadas. No son fondos ni dinero recibido.</p>
     <button id="btn-apoyos" class="big" data-i18n="btnRefreshSup">Actualizar apoyos</button>
-    <div id="apoyos" aria-live="polite"><p class="nota" data-i18n="supLogin">Inicia sesión para ver los apoyos.</p></div>
+    <div id="apoyos" aria-live="polite"><p class="nota" data-i18n="supLoading">Cargando apoyos…</p></div>
   </section>
 
-  <section id="editor" class="bloque" hidden aria-labelledby="editor-titulo">
-    <h2 id="editor-titulo" data-i18n="edTitle">Tus datos</h2>
-    <ol class="flujo" aria-label="Pasos para publicar" data-i18n-aria="flowSteps">
-      <li><strong data-i18n="fl1b">1 · Datos</strong><span data-i18n="fl1t">Completa la información abajo.</span></li>
-      <li><strong data-i18n="fl2b">2 · Revisar</strong><span data-i18n="fl2t">Revisa tus cambios antes de publicar.</span></li>
-      <li><strong data-i18n="fl3b">3 · Publicar</strong><span data-i18n="fl3t">Confirma y comparte tu página.</span></li>
+  <section id="view-share" role="tabpanel" aria-labelledby="tab-view-share" class="bloque" hidden>
+    <h2 data-i18n="tabShare">Compartir</h2>
+    <p class="nota" data-i18n="sec4Note">Aquí aparece tu página pública después de publicar. Compártela para recibir consultas y apoyos.</p>
+    <div id="share-list" aria-live="polite"></div>
+  </section>
+
+  <section id="workspace" class="bloque" hidden aria-labelledby="ws-title">
+    <button id="btn-workspace-back" class="big" data-i18n="wsBack">← Volver a la lista</button>
+    <h2 id="ws-title" tabindex="-1">Tu iniciativa</h2>
+    <p><span id="ws-state" class="chip"></span></p>
+    <ol id="steps" aria-label="Pasos" data-i18n-aria="stepsLabel">
+      <li id="step1li"><strong data-i18n="step1">1 · Tu iniciativa</strong></li>
+      <li id="step2li"><strong data-i18n="step2">2 · Revisar</strong></li>
+      <li id="step3li"><strong data-i18n="step3">3 · Publicar</strong></li>
     </ol>
     <p id="draft-meta" role="status"></p>
-    <div id="product-modes" class="modos" role="group" aria-label="Modo de entrada" data-i18n-aria="modeGroup">
-      <button data-mode="A" aria-pressed="false" class="big" data-i18n="modeA">Hablar</button>
-      <button data-mode="B" aria-pressed="false" class="big" data-i18n="modeB">Paso a paso</button>
-      <button data-mode="C" aria-pressed="true" class="big" data-i18n="modeC">Escribir o tocar</button>
-    </div>
 
-    <div id="mode-C">
-      <label><span data-i18n="fProdName">Nombre</span> <input id="f-name"></label>
-      <div role="group" aria-label="Precio" data-i18n-aria="priceGroup">
-        <p><strong data-i18n="priceGroup">Precio</strong></p>
-        <button id="p-minus" class="big" aria-label="Bajar precio" data-i18n-aria="priceDown">−</button>
-        <button id="p-plus" class="big" aria-label="Subir precio" data-i18n-aria="priceUp">+</button>
-        <button data-quick="100" class="big">$1</button>
-        <button data-quick="500" class="big">$5</button>
-        <button data-quick="1000" class="big">$10</button>
+    <div id="step-1">
+      <p class="nota" data-i18n="modesNote">Completa el formulario como prefieras: hablando, paso a paso o escribiendo. Todo se guarda con Guardar y continuar.</p>
+      <div id="product-modes" class="modos" role="group" aria-label="Modo de entrada" data-i18n-aria="modeGroup">
+        <button data-mode="A" aria-pressed="false" class="big" data-i18n="modeA">Hablar</button>
+        <button data-mode="B" aria-pressed="false" class="big" data-i18n="modeB">Paso a paso</button>
+        <button data-mode="C" aria-pressed="true" class="big" data-i18n="modeC">Escribir o tocar</button>
       </div>
-      <label><span data-i18n="fPriceDirect">Entrada directa (p. ej. «cinco dólares»)</span> <input id="f-price-text" placeholder="cinco dólares" data-i18n-ph="fPriceDirectPh"></label>
-      <p id="f-price-view"></p>
-      <label><span data-i18n="fDesc">Descripción</span> <textarea id="f-desc" rows="3"></textarea></label>
-      <button id="btn-save-c" class="big" data-i18n="btnSaveChanges">Guardar cambios</button>
-    </div>
 
-    <div id="mode-A" hidden>
-      <p id="mode-a-note" class="nota" hidden><strong data-i18n="modeANoteB">La modalidad se elige con los botones.</strong><span data-i18n="modeANoteT"> El dictado solo propone nombre y descripción.</span></p>
-      <p id="grabando" hidden><span data-i18n="recording">● Grabando — </span><span id="rec-time">0</span><span data-i18n="recSecs">s</span></p>
-      <button id="btn-rec" class="big" data-i18n="btnRec">Iniciar dictado</button>
-      <button id="btn-rec-stop" class="big" disabled data-i18n="btnRecStop">Terminar</button>
-      <button id="btn-rec-cancel" class="big" disabled data-i18n="btnRecCancel">Cancelar</button>
-      <p id="rec-info" class="nota"></p>
-      <label><span data-i18n="fFakeScript">Texto para el doble de transcripción (prueba, no es voz real)</span> <input id="fake-script" placeholder="Galletas, cinco dólares" data-i18n-ph="fFakeScriptPh"></label>
-      <button id="btn-transcribe" class="big" data-i18n="btnTranscribe">Transcribir (doble)</button>
-      <div id="proposal" class="diff" hidden></div>
-    </div>
-
-    <div id="mode-B" hidden>
-      <p id="q-text" class="big" aria-live="polite"></p>
-      <button id="btn-speak" class="big" data-i18n="btnSpeak">Leer pregunta en voz alta</button>
-      <button id="btn-repeat" class="big" data-i18n="btnRepeat">Repetir</button>
-      <label><span data-i18n="fAnswer">Respuesta</span> <input id="q-answer"></label>
-      <button id="btn-answer" class="big" data-i18n="btnAnswer">Guardar respuesta y continuar</button>
-    </div>
-
-    <div id="init-box" hidden>
-      <p><span class="aviso-demo" data-i18n="initBadge">Mi iniciativa</span></p>
-      <label><span data-i18n="fInitName">Nombre de la iniciativa</span> <input id="f-init-name"></label>
-      <div class="modos" role="group" aria-label="Modalidad de la iniciativa" data-i18n-aria="imodeGroup">
-        <button data-imode="donations" aria-pressed="false" class="big" data-i18n="modalityDonations">Donaciones</button>
-        <button data-imode="business" aria-pressed="false" class="big" data-i18n="modalityBusiness">Negocio</button>
-        <button data-imode="both" aria-pressed="false" class="big" data-i18n="modalityBoth">Ambas</button>
+      <div id="mode-C">
+        <label><span id="label-name">Nombre</span> <input id="f-name" maxlength="120"></label>
+        <label><span id="label-desc">Descripción</span> <textarea id="f-desc" rows="3"></textarea></label>
+        <div id="price-block" role="group" aria-label="Precio" data-i18n-aria="priceGroup">
+          <p><strong data-i18n="priceGroup">Precio</strong></p>
+          <button id="p-minus" class="big" aria-label="Bajar precio" data-i18n-aria="priceDown">−</button>
+          <button id="p-plus" class="big" aria-label="Subir precio" data-i18n-aria="priceUp">+</button>
+          <button data-quick="100" class="big">$1</button>
+          <button data-quick="500" class="big">$5</button>
+          <button data-quick="1000" class="big">$10</button>
+          <label><span data-i18n="fPriceDirect">Entrada directa (p. ej. «cinco dólares»)</span> <input id="f-price-text" placeholder="cinco dólares" data-i18n-ph="fPriceDirectPh"></label>
+          <p id="f-price-view"></p>
+        </div>
+        <fieldset id="cover-block">
+          <legend data-i18n="coverTitle">Portada</legend>
+          <p class="nota" data-i18n="coverNote">Elige una ilustración para tu página. Son dibujos decorativos, no fotos reales.</p>
+          <div class="covers" role="radiogroup" aria-label="Portada" data-i18n-aria="coverTitle">
+            <label class="cover-opt"><input type="radio" name="cover" value="/img/portada-apoyo.svg"><img src="/img/portada-apoyo.svg" data-i18n-alt="coverApoyo" alt="Apoyo"><span data-i18n="coverApoyo">Apoyo</span></label>
+            <label class="cover-opt"><input type="radio" name="cover" value="/img/portada-artesania.svg"><img src="/img/portada-artesania.svg" data-i18n-alt="coverArtesania" alt="Artesanía"><span data-i18n="coverArtesania">Artesanía</span></label>
+            <label class="cover-opt"><input type="radio" name="cover" value="/img/portada-negocio.svg"><img src="/img/portada-negocio.svg" data-i18n-alt="coverNegocio" alt="Negocio"><span data-i18n="coverNegocio">Negocio</span></label>
+            <label class="cover-opt"><input type="radio" name="cover" value="/img/portada-huerta.svg"><img src="/img/portada-huerta.svg" data-i18n-alt="coverHuerta" alt="Huerta"><span data-i18n="coverHuerta">Huerta</span></label>
+            <label class="cover-opt"><input type="radio" name="cover" value=""><img src="/img/portada-apoyo.svg" data-i18n-alt="coverAuto" alt="Automática"><span data-i18n="coverAuto">Automática</span></label>
+          </div>
+          <p class="nota" id="cover-current" hidden></p>
+        </fieldset>
+        <div id="imode-block">
+          <div class="modos" role="group" aria-label="Modalidad de la iniciativa" data-i18n-aria="imodeGroup">
+            <button data-imode="donations" aria-pressed="false" class="big" data-i18n="modalityDonations">Donaciones</button>
+            <button data-imode="business" aria-pressed="false" class="big" data-i18n="modalityBusiness">Negocio</button>
+            <button data-imode="both" aria-pressed="false" class="big" data-i18n="modalityBoth">Ambas</button>
+          </div>
+          <p id="init-modality-view" aria-live="polite"></p>
+        </div>
+        <div id="pg-block">
+          <label><span data-i18n="fPurpose">Propósito</span> <textarea id="f-purpose" rows="2"></textarea></label>
+          <label><span data-i18n="fGoal">Meta en USD (opcional, p. ej. 100)</span> <input id="f-goal" inputmode="decimal" placeholder="100"></label>
+          <p id="f-goal-view"></p>
+        </div>
       </div>
-      <p id="init-modality-view" aria-live="polite"></p>
-      <label><span data-i18n="fPresent">Presentación</span> <textarea id="f-init-desc" rows="3"></textarea></label>
-      <label><span data-i18n="fPurpose">Propósito</span> <textarea id="f-purpose" rows="2"></textarea></label>
-      <label><span data-i18n="fGoal">Meta en USD (opcional, p. ej. 100)</span> <input id="f-goal" inputmode="decimal" placeholder="100"></label>
-      <p id="f-goal-view"></p>
-      <button id="btn-save-init" class="big" data-i18n="btnSaveInit">Guardar iniciativa</button>
+
+      <div id="mode-A" hidden>
+        <p id="mode-a-note" class="nota" hidden><strong data-i18n="modeANoteB">La modalidad se elige con los botones.</strong><span data-i18n="modeANoteT"> El dictado solo propone nombre y descripción.</span></p>
+        <p id="mode-a-presave" class="nota" hidden data-i18n="modeAPresave">Hablar estará disponible tras el primer guardado.</p>
+        <p id="grabando" hidden><span data-i18n="recording">● Grabando — </span><span id="rec-time">0</span><span data-i18n="recSecs">s</span></p>
+        <button id="btn-rec" class="big" data-i18n="btnRec">Iniciar dictado</button>
+        <button id="btn-rec-stop" class="big" disabled data-i18n="btnRecStop">Terminar</button>
+        <button id="btn-rec-cancel" class="big" disabled data-i18n="btnRecCancel">Cancelar</button>
+        <p id="rec-info" class="nota"></p>
+        <label><span data-i18n="fFakeScript">Texto para el doble de transcripción (prueba, no es voz real)</span> <input id="fake-script" placeholder="Galletas, cinco dólares" data-i18n-ph="fFakeScriptPh"></label>
+        <button id="btn-transcribe" class="big" data-i18n="btnTranscribe">Transcribir (doble)</button>
+        <div id="proposal" class="diff" hidden></div>
+      </div>
+
+      <div id="mode-B" hidden>
+        <p id="q-text" class="big" aria-live="polite"></p>
+        <button id="btn-speak" class="big" data-i18n="btnSpeak">Leer pregunta en voz alta</button>
+        <button id="btn-repeat" class="big" data-i18n="btnRepeat">Repetir</button>
+        <label><span data-i18n="fAnswer">Respuesta</span> <input id="q-answer"></label>
+        <button id="btn-answer" class="big" data-i18n="btnAnswerB">Usar respuesta</button>
+      </div>
+
+      <div id="conflict" class="diff" hidden></div>
+      <p id="form-error" class="error" role="alert" hidden></p>
+      <div class="ctas">
+        <button id="btn-save-continue" class="big" data-i18n="saveContinue">Guardar y continuar</button>
+        <button id="btn-cancel-form" class="big" data-i18n="cancelForm">Cancelar</button>
+      </div>
+      <p><button id="btn-recover" class="big" hidden data-i18n="recoverDraft">Recuperar borrador</button></p>
+      <p class="nota" id="recover-note" hidden data-i18n="recoverNote">Recupera la última versión guardada en este navegador. No incluye lo escrito sin guardar.</p>
     </div>
 
-    <div id="conflict" class="diff" hidden></div>
+    <div id="step-2" hidden>
+      <div id="review" class="previa"></div>
+      <p id="review-missing" class="nota" role="status"></p>
+      <div class="ctas">
+        <button id="btn-back-edit" class="big" data-i18n="backEdit">Volver a editar</button>
+        <button id="btn-publish" class="big" data-i18n="btnPublish">Confirmar y publicar</button>
+      </div>
+    </div>
 
-    <h2 data-i18n="revTitle">Revisión y publicación</h2>
-    <button id="btn-review" class="big" data-i18n="btnReview">Revisar mis cambios</button>
-    <div id="review" class="diff" hidden></div>
-    <button id="btn-publish" class="big" hidden data-i18n="btnPublish">Confirmar y publicar</button>
-    <p class="nota" data-i18n="revNote">Publicar exige confirmar el contenido exacto revisado. Guardar no publica.</p>
+    <div id="step-3" hidden>
+      <div id="publish-result" aria-live="polite"></div>
+      <div class="ctas">
+        <button id="btn-ver-pagina" class="big" data-i18n="btnSeePage">Ver mi página</button>
+        <button id="btn-copiar-enlace" class="big" data-i18n="copyLink">Copiar enlace</button>
+        <button id="btn-descargar-qr" class="big" data-i18n="qrDownload">Descargar QR</button>
+      </div>
+      <p id="publish-result-estado" role="status"></p>
+    </div>
+
     <details id="diagnostico-box">
       <summary data-i18n="diagSummary">Detalles técnicos (diagnóstico)</summary>
       <p id="draft-tecnico" class="nota"></p>
     </details>
-  </section>
-
-  <section id="compartir-sec" class="bloque" aria-labelledby="compartir-titulo">
-    <h2 id="compartir-titulo" data-i18n="s4t">4 · Compartir</h2>
-    <p class="nota" data-i18n="sec4Note">Aquí aparece tu página pública después de publicar. Compártela para recibir consultas y apoyos.</p>
-    <div id="publish-ok" hidden>
-      <p id="publish-ok-msg" role="status"></p>
-      <button id="btn-ver-pagina" class="big" data-i18n="btnSeePage">Ver mi página</button>
-      <button id="btn-copiar-enlace" class="big" data-i18n="copyLink">Copiar enlace</button>
-      <button id="btn-compartir-qr" class="big" data-i18n="btnShareQr">Compartir/QR</button>
-      <p id="publish-ok-estado" role="status"></p>
-    </div>
   </section>
 </div>
 </main>

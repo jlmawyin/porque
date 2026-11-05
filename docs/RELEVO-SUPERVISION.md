@@ -20,8 +20,44 @@
   campos sin guardar; documentado, sin corregir); validación en
   Android físico; ronda real 1 (presupuesto); bases del evento;
   datos Contabo; despliegue en porque.somospanas.com.
-- Próximo paso: lo que Jorge encargue (candidatos: defecto de
-  modalidad, despliegue, ronda real 1).
+- Próximo paso: corrección UX por etapas (ver plan del turno).
+
+## Plan del turno — corrección UX (2026-11-05, encargo de Jorge)
+
+Objetivo: recorrido comprensible (crear → completar → revisar →
+publicar → ver → compartir), un paso y una acción principal a la
+vez. Primero los dos bloqueos (borrador vacío al clic; pérdida de
+campos), después el recorrido.
+Conservar: cuentas, datos, publicaciones, ES/EN, QR, controles de
+revisión, estilo crema/verde/terracota. Sin funciones ajenas.
+
+- Etapa 1: bienvenida + "¿Qué quieres hacer?"; crear abre el
+  formulario sin persistir; primera persistencia al guardar
+  (`POST /api/drafts` acepta `initial` validado y atómico);
+  estado único de formulario, un solo guardado, sin repintes con
+  versiones viejas; incompletos en apartado secundario retomable.
+- Etapa 2: vistas reales (Mi iniciativa, Productos, Apoyos,
+  Compartir); pasos 1-2-3 con Guardar y continuar / Volver a
+  editar / Confirmar y publicar; revisión como vista previa;
+  estados Borrador/Publicado/Con cambios derivados de versión
+  publicada; campos por modalidad sin borrar datos; "Recuperar
+  borrador" secundario con límite explicado.
+- Etapa 3: selector de portadas (ilustraciones locales
+  originales); misma imagen en Explorar/previa/pública; hero
+  reducido; pública reordenada con una acción principal de
+  apoyo y simulación secundaria; sin iniciales ni formularios
+  dobles en lateral.
+- Verificación: 10 puntos por navegador ES+EN 390px+escritorio,
+  tests de regresión, suite final, 6 capturas, commits+push,
+  dist nuevo + pasos del sitio (sin acceso operativo: paquete
+  y pasos, sin afirmar cambios).
+Archivos previstos: `server/api.mjs`, `server/db.mjs` (solo si
+exige el estado publicado), `shared/contracts.mjs`, `web/panel.*`,
+`web/index.html`, `web/initiative.html`, `web/i18n.mjs`,
+`web/styles.css`, `web/img/portada-*.svg` (nuevas),
+`tests/*.test.mjs`, `docs/*`.
+Cierre: las 10 comprobaciones en verde + suite verde + push +
+dist + pasos.
 
 ## Propósito y alcance actual
 

@@ -69,9 +69,9 @@ h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.25; 
 
 /* Hero */
 .hero .contenedor {
-  display: grid; gap: 2rem; align-items: center; padding-top: 2.5rem; padding-bottom: 2.5rem;
+  display: grid; gap: 1.25rem; align-items: center; padding-top: 1.5rem; padding-bottom: 1.5rem;
 }
-.hero h1 { font-size: 2.4rem; margin: 0.5rem 0; }
+.hero h1 { font-size: 2rem; margin: 0.5rem 0; }
 .hero-sub { font-size: 1.3rem; color: var(--texto-suave); margin: 0.5rem 0 1rem; }
 .hero-figura { margin: 0; }
 .hero-figura img { width: 100%; height: auto; border-radius: var(--radio); box-shadow: var(--sombra); }
@@ -227,3 +227,21 @@ footer a { color: var(--primario); }
 .idioma button:hover { background: var(--superficie-suave); }
 .idioma button[aria-pressed="true"] { font-weight: bold; text-decoration: underline; text-underline-offset: 3px; }
 .idioma .sep { opacity: 0.5; }
+
+/* Recorrido guiado: vistas, pasos, estados y portadas. */
+#views-bar .modos [role="tab"][aria-selected="true"] { background: var(--primario); border-color: var(--primario); color: #fff; }
+#views-bar .modos [role="tab"][aria-selected="false"] { background: var(--superficie); color: var(--primario); }
+#steps { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding-left: 0; }
+#steps li { padding: 0.4rem 0.8rem; border: 1px solid var(--borde); border-radius: 12px; background: var(--superficie); }
+#steps li[aria-current="step"] { background: var(--primario); border-color: var(--primario); color: #fff; }
+.chip { display: inline-block; padding: 0.2rem 0.7rem; border-radius: 999px; font-size: 0.9rem; font-weight: bold; background: var(--superficie-suave); border: 1px solid var(--borde); }
+.chip[data-state="published"] { background: var(--primario); border-color: var(--primario); color: #fff; }
+.chip[data-state="changed"] { background: var(--acento); border-color: var(--acento); color: #fff; }
+.covers { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem; }
+.cover-opt { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; border: 2px solid var(--borde); border-radius: 12px; padding: 0.5rem; cursor: pointer; font-weight: bold; }
+.cover-opt:has(input:checked) { border-color: var(--primario); }
+.cover-opt img { width: 100%; height: auto; border-radius: 8px; aspect-ratio: 8 / 5; object-fit: cover; }
+.cover-opt input { min-height: 1.5rem; min-width: 1.5rem; }
+.previa-portada { width: 100%; max-width: 30rem; height: auto; border-radius: 12px; aspect-ratio: 8 / 5; object-fit: cover; }
+.previa-nombre { font-size: 1.3rem; }
+.ficha img.portada, .pagina-init img.portada { width: 100%; height: auto; border-radius: 12px; aspect-ratio: 8 / 5; object-fit: cover; }

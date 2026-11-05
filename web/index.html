@@ -103,16 +103,16 @@ async function api(path, opts = {}) {
   const r = await fetch(path, opts);
   return r.json();
 }
-function visualAlt(nombre) {
-  const letra = String(nombre ?? '?').trim().charAt(0).toUpperCase() || '?';
-  return `<div class="visual-alt" role="img" aria-label="${escapeHtml(t(L(), 'visualAlt'))}">${escapeHtml(letra)}</div>`;
+function coverImg(ref, altKey, fallback) {
+  const src = (ref && (ref.startsWith('/img/') || ref.startsWith('https://'))) ? ref : fallback;
+  return `<img class="portada" src="${escapeHtml(src)}" alt="${escapeHtml(t(L(), altKey))}" loading="lazy">`;
 }
 function card(p) {
   const precio = Number.isInteger(p.priceCents)
     ? `<p class="precio">$${(p.priceCents / 100).toFixed(2)} USD</p>`
     : '';
   return `<article class="ficha">
-    ${visualAlt(p.name)}
+    ${coverImg(p.imageRef, 'prodImgAlt', '/img/portada-artesania.svg')}
     <h3>${escapeHtml(p.name)}</h3>
     ${precio}
     <p>${escapeHtml(p.description || '')}</p>
@@ -158,11 +158,8 @@ document.getElementById('btn-chat').addEventListener('click', async () => {
 const listaInit = document.getElementById('lista-iniciativas');
 function tarjetaInit(i) {
   const modalidad = i.modality ? modalityName(L(), i.modality) : t(L(), 'modalityNone');
-  const visual = i.imageRef
-    ? `<img src="${escapeHtml(i.imageRef)}" alt="${escapeHtml(t(L(), 'initImgAlt'))}" loading="lazy">`
-    : visualAlt(i.name);
   return `<article class="ficha">
-    ${visual}
+    ${coverImg(i.imageRef, 'initImgAlt', '/img/portada-apoyo.svg')}
     <h3>${escapeHtml(i.name ?? t(L(), 'initNoName'))}</h3>
     <p><span class="etiqueta-modalidad">${escapeHtml(modalidad)}</span></p>
     <p>${escapeHtml((i.description ?? '').slice(0, 160))}</p>

@@ -46,6 +46,7 @@ const main = document.getElementById('iniciativa');
 let viewState = 'loading'; // loading | ok | notFound | offline | gone | loadFail
 let lastInit = null;
 let lastShare = null;
+let openFormKind = null; // 'intent' | 'simulated' | null
 
 function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function idDeRuta() {
@@ -58,16 +59,16 @@ function metaUSD(cents) {
   return `<p class="meta"><strong>${escapeHtml(t(L(), 'metaGoal'))}</strong> $${(cents / 100).toFixed(2)} USD</p>
     <p class="nota">${escapeHtml(t(L(), 'goalNote'))}</p>`;
 }
+function coverSrc(ref, fallback) {
+  return (ref && (ref.startsWith('/img/') || ref.startsWith('https://'))) ? ref : fallback;
+}
 function visualInit(init) {
-  if (init.imageRef) {
-    return `<figure><img src="${escapeHtml(init.imageRef)}" alt="${escapeHtml(t(L(), 'initImgAlt'))}"><figcaption>${init.imageAi ? `<span class="etiqueta-ia">${escapeHtml(t(L(), 'aiImg'))}</span>` : ''}</figcaption></figure>`;
-  }
-  const letra = String(init.name ?? '?').trim().charAt(0).toUpperCase() || '?';
-  return `<div class="visual-alt" role="img" aria-label="${escapeHtml(t(L(), 'visualAlt'))}">${escapeHtml(letra)}</div>`;
+  return `<figure><img class="portada" src="${escapeHtml(coverSrc(init.imageRef, '/img/portada-apoyo.svg'))}" alt="${escapeHtml(t(L(), 'initImgAlt'))}"><figcaption>${init.imageAi ? `<span class="etiqueta-ia">${escapeHtml(t(L(), 'aiImg'))}</span>` : ''}</figcaption></figure>`;
 }
 function cardProducto(p) {
   const precio = Number.isInteger(p.priceCents) ? `<p class="precio">$${(p.priceCents / 100).toFixed(2)} USD</p>` : '';
   return `<article class="ficha">
+    <img class="portada" src="${escapeHtml(coverSrc(p.imageRef, '/img/portada-artesania.svg'))}" alt="${escapeHtml(t(L(), 'prodImgAlt'))}" loading="lazy">
     <h3>${escapeHtml(p.name)}</h3>
     ${precio}
     <p>${escapeHtml(p.description || '')}</p>
@@ -95,8 +96,7 @@ function vista(init) {
         ? `<h2>${escapeHtml(t(L(), 'prodTitle'))}</h2><div class="productos">${productos.map(cardProducto).join('')}</div>`
         : `<p class="nota">${escapeHtml(t(L(), 'noProdsPub'))}</p>`) : ''}
     </article>
-    <div class="lateral-init">
-      <section class="tarjeta" aria-labelledby="apoyar-titulo">
+    <section class="tarjeta" aria-labelledby="apoyar-titulo">
         <h2 id="apoyar-titulo">${escapeHtml(t(L(), 'supportTitle'))}</h2>
         <div id="apoyos" data-id="${escapeHtml(init.id ?? '')}" data-modality="${escapeHtml(init.modality ?? '')}">
           <p class="nota">${escapeHtml(t(L(), 'apoyoLoading'))}</p>
@@ -110,7 +110,6 @@ function vista(init) {
         <p id="url-estado" role="status"></p>
         <div id="qr-box"><p class="nota" id="qr-nota">${escapeHtml(t(L(), 'qrPending'))}</p></div>
       </section>
-    </div>
   </div>`;
 }
 function apoyoKindName(k) {
@@ -227,16 +226,34 @@ function montarApoyos(init) {
     return;
   }
   box.innerHTML = `<p id="apoyos-resumen" role="status">${escapeHtml(t(L(), 'sumLoading'))}</p>
-    <div class="apoyos-grid">
-      ${formularioApoyo('intent', t(L(), 'intentT'), t(L(), 'intentX'), t(L(), 'intentC'))}
-      ${formularioApoyo('simulated', t(L(), 'simT'), t(L(), 'simX'), t(L(), 'simC'))}
-    </div>`;
+    <p class="nota">${escapeHtml(t(L(), 'supportChoiceNote'))}</p>
+    <div class="ctas">
+      <button class="big" id="btn-form-intent" aria-expanded="false" aria-controls="box-intent">${escapeHtml(t(L(), 'intentT'))}</button>
+      <button class="big" id="btn-form-simulated" aria-expanded="false" aria-controls="box-simulated">${escapeHtml(t(L(), 'simT'))}</button>
+    </div>
+    <div id="box-intent" hidden>${formularioApoyo('intent', t(L(), 'intentT'), t(L(), 'intentX'), t(L(), 'intentC'))}</div>
+    <div id="box-simulated" hidden>${formularioApoyo('simulated', t(L(), 'simT'), t(L(), 'simX'), t(L(), 'simC'))}</div>`;
   cargarResumen(id);
   for (const kind of ['intent', 'simulated']) {
     document.getElementById(`form-${kind}`).addEventListener('submit', (e) => {
       e.preventDefault();
       enviarApoyo(kind, id, e.target);
     });
+    document.getElementById(`btn-form-${kind}`).addEventListener('click', () => toggleApoyoForm(kind, false));
+  }
+  if (openFormKind) toggleApoyoForm(openFormKind, true);
+}
+function toggleApoyoForm(kind, silent) {
+  openFormKind = (openFormKind === kind && !silent) ? null : kind;
+  for (const k of ['intent', 'simulated']) {
+    const open = openFormKind === k;
+    document.getElementById(`box-${k}`).hidden = !open;
+    document.getElementById(`btn-form-${k}`).setAttribute('aria-expanded', String(open));
+  }
+  if (openFormKind && !silent) {
+    const box = document.getElementById(`box-${openFormKind}`);
+    box.scrollIntoView({ block: 'nearest' });
+    box.querySelector('input[name="monto"]').focus();
   }
 }
 function errorVista(titleKey, p1Key) {

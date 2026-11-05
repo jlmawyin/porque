@@ -98,6 +98,22 @@ const initiativeOf = (row) => ({
   ownerName: row.owner_name ?? null,
 });
 
+// Estado publicado de un borrador: última versión publicada con su hash
+// de contenido, para derivar Borrador / Publicado / Publicado con
+// cambios pendientes sin etiquetas locales.
+function publishedInfo(db, draftId) {
+  const row = db.prepare(
+    'SELECT * FROM products WHERE draft_id = ? ORDER BY version DESC LIMIT 1',
+  ).get(draftId);
+  if (!row) return null;
+  const p = productOf(row);
+  return {
+    productId: p.id, version: p.version, draftRevision: p.draftRevision,
+    contentHash: contentHashOf(canonicalDraft(p)),
+  };
+}
+const withPublished = (db, draft) => draft && { ...draft, published: publishedInfo(db, draft.id) };
+
 // Idempotencia: misma clave -> misma respuesta, sin duplicar la mutación.
 // Con scope de propietario: la misma clave de otro propietario no ve ni
 // repite la mutación ajena (cada propietario tiene su propio espacio).
@@ -430,28 +446,43 @@ export function createRouter(db, opts = {}) {
       if (body.__e) return err(res, body.__e.status ?? 400, ErrorCodes.BAD_REQUEST, body.__e.message);
       const vc = validateDraftCreate(body);
       if (vc.errors) return err(res, 400, ErrorCodes.BAD_REQUEST, vc.errors.join('; '));
+      // Creación con datos (Etapa 1 UX): primera persistencia con datos
+      // significativos, validada y atómica. Sin initial se conserva el
+      // comportamiento anterior (borrador vacío).
+      let initial = null;
+      if (body.initial !== undefined) {
+        if (typeof body.initial !== 'object' || body.initial === null || !Object.keys(body.initial).length) {
+          return err(res, 400, ErrorCodes.BAD_REQUEST, 'initial vacío: envía datos significativos o nada');
+        }
+        const vi = validateDraftPatch(body.initial);
+        if (vi.errors) return err(res, 400, ErrorCodes.BAD_REQUEST, vi.errors.join('; '));
+        initial = vi.value;
+      }
       return idempotent(db, res, body.clientOpId, 'drafts.create', () => {
         const id = randomUUID();
         const now = nowIso();
-        db.prepare('INSERT INTO drafts (id, kind, created_at, updated_at, owner_user_id) VALUES (?, ?, ?, ?, ?)').run(
-          id, vc.value.kind, now, now, req.session.user_id ?? null,
+        db.prepare(`INSERT INTO drafts (id, kind, name, price_cents, description, image_ref, modality, purpose, goal_cents,
+          created_at, updated_at, owner_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+          id, vc.value.kind, initial?.name ?? null, initial?.priceCents ?? null, initial?.description ?? null,
+          initial?.imageRef ?? null, initial?.modality ?? null, initial?.purpose ?? null, initial?.goalCents ?? null,
+          now, now, req.session.user_id ?? null,
         );
         audit(db, 'seller', 'draft.created', 'draft:' + id);
-        return { code: 201, body: { ok: true, draft: draftOf(draftOwned(db, id, req.session)) } };
+        return { code: 201, body: { ok: true, draft: withPublished(db, draftOf(draftOwned(db, id, req.session))) } };
       }, idemScope(req.session));
     }
     if (method === 'GET' && pathname === '/api/drafts') {
       const rows = req.session.user_id
         ? db.prepare('SELECT * FROM drafts WHERE owner_user_id = ? ORDER BY updated_at DESC').all(req.session.user_id)
         : db.prepare('SELECT * FROM drafts WHERE owner_user_id IS NULL ORDER BY updated_at DESC').all();
-      return send(res, 200, { ok: true, drafts: rows.map(draftOf) });
+      return send(res, 200, { ok: true, drafts: rows.map((d) => withPublished(db, draftOf(d))) });
     }
     const mDraft = /^\/api\/drafts\/([A-Za-z0-9-]+)(\/(review|publish|conflicts))?$/.exec(pathname);
     if (mDraft) {
       const [, id, , action] = mDraft;
       const row = draftOwned(db, id, req.session);
       if (!row) return err(res, 404, ErrorCodes.NOT_FOUND);
-      if (method === 'GET' && !action) return send(res, 200, { ok: true, draft: draftOf(row) });
+      if (method === 'GET' && !action) return send(res, 200, { ok: true, draft: withPublished(db, draftOf(row)) });
 
       if (method === 'PATCH' && !action) {
         const body = await readJson(req).catch((e) => ({ __e: e }));
@@ -483,7 +514,7 @@ export function createRouter(db, opts = {}) {
           ).run(next.name ?? null, next.priceCents ?? null, next.description ?? null, next.imageRef ?? null,
             next.modality ?? null, next.purpose ?? null, next.goalCents ?? null, now, id);
           db.prepare('DELETE FROM reviews WHERE draft_id = ?').run(id); // cambiar invalida revisiones
-          const updated = draftOf(db.prepare('SELECT * FROM drafts WHERE id = ?').get(id));
+          const updated = withPublished(db, draftOf(db.prepare('SELECT * FROM drafts WHERE id = ?').get(id)));
           audit(db, 'seller', 'draft.patched', 'draft:' + id, 'rev ' + updated.revision);
           return { code: 200, body: { ok: true, draft: updated } };
         }, idemScope(req.session));
@@ -560,7 +591,7 @@ export function createRouter(db, opts = {}) {
         }
         db.prepare("UPDATE conflicts SET status = 'resolved', resolved_at = ? WHERE id = ?").run(nowIso(), cid);
         audit(db, 'seller', 'draft.conflict_resolved', 'draft:' + id, body.choice);
-        return { code: 200, body: { ok: true, draft: draftOf(draftOwned(db, id, req.session)) } };
+        return { code: 200, body: { ok: true, draft: withPublished(db, draftOf(draftOwned(db, id, req.session))) } };
       }, idemScope(req.session));
     }
 
