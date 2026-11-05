@@ -11,6 +11,10 @@ const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 const MAX_FAILS = 5;
 const LOCK_MS = 10 * 60 * 1000;
 const MAX_REGISTER_PER_HOUR = 30;
+const MAX_DEMO_PER_HOUR = 60;
+export const DEMO_EMAIL_DOMAIN = 'porque.demo';
+export const isDemoEmail = (email) =>
+  typeof email === 'string' && email.toLowerCase().endsWith('@' + DEMO_EMAIL_DOMAIN);
 
 const hashPw = (password, salt) => scryptSync(password, salt, 32).toString('hex');
 
@@ -101,5 +105,26 @@ export function meOf(db, session) {
   if (!session.user_id) return { legacy: true };
   const row = db.prepare('SELECT * FROM users WHERE id = ?').get(session.user_id);
   if (!row) return null;
-  return { user: publicUser(row) };
+  return { user: publicUser(row), demo: isDemoEmail(row.email) };
+}
+
+// Demo para jueces: cada llamada crea una identidad demo nueva y desechable
+// (sin contraseña conocida) y abre sesión. Sin semillas: el recorrido real
+// empieza vacío. Solo se expone cuando PORQUE_DEMO=1 (ver api.mjs).
+export function startDemo(db) {
+  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const recent = db.prepare(
+    'SELECT COUNT(*) AS n FROM users WHERE created_at > ? AND email LIKE ?',
+  ).get(since, '%@' + DEMO_EMAIL_DOMAIN).n;
+  if (recent >= MAX_DEMO_PER_HOUR) return { ok: false, rateLimited: true };
+  const id = randomUUID();
+  const email = `demo-${randomBytes(4).toString('hex')}@${DEMO_EMAIL_DOMAIN}`;
+  const salt = randomBytes(16).toString('hex');
+  const createdAt = nowIso();
+  db.prepare(
+    'INSERT INTO users (id, name, email, pw_hash, pw_salt, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+  ).run(id, 'Juez demo', email, hashPw(randomBytes(32).toString('hex'), salt), salt, createdAt);
+  audit(db, 'account', 'account.demo_started', 'user:' + id);
+  const s = openSession(db, id);
+  return { ok: true, user: { id, name: 'Juez demo', email, createdAt }, ...s };
 }

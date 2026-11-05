@@ -181,3 +181,98 @@
   `docs/decisiones.md`, `docs/registro.md`.
 - Comandos: revisión de diff + commit documental + push normal.
 - Pendiente: lo que Jorge encargue.
+
+## Mejoras demo + formulario (2026-11-05, encargo de Jorge)
+
+- Pretendido: (1) botones DEMO sin registro para jueces, (2) botón
+  Reset, (3) simplificar el llenado de datos, (4) organizar los
+  botones de iniciativas. Sin tocar cuentas/datos reales.
+- Terminado: `POST /api/demo/start` (solo con PORQUE_DEMO=1; sin
+  ella responde 404), identidad demo desechable por clic
+  (`demo-*@porque.demo`, sin contraseña conocida), `me.demo`,
+  tope 60 demos/hora; botón demo en portada y panel; banner demo +
+  «Reiniciar demo» (cambia a identidad limpia, conserva lo anterior);
+  formulario numerado 1-5/1-4 (solo cuenta lo visible), ayudas
+  breves, modalidad con descripciones antes que portada, modos
+  Hablar/Paso a paso en desplegable «Otras formas de completar»,
+  propósito/meta ocultos en productos y Negocio (sin borrar datos);
+  estilo `.secundario` (antes existía la clase sin regla) aplicado
+  a Volver/Cancelar/Abrir/Retomar/Copiar/Recuperar/demo; paso 1
+  dice «Tu producto» en productos; chip de estado se re-renderiza
+  al cambiar idioma; SW `porque-v6`; README documenta PORQUE_DEMO;
+  18 claves i18n ES/EN nuevas con paridad.
+- Verificado: suite 72/72 (5 tests demo nuevos: 404 desactivada,
+  201+sesión, identidades distintas, me.demo false en normal,
+  429 al tope); navegador ES+EN: demo desactivada muestra aviso
+  honesto, entrada demo llega a bienvenida con banner, crear→
+  guardar→revisar→publicar v1, reset vuelve a 0 borradores con
+  identidad nueva (BD: 2 demos, 1 borrador+1 publicado intactos),
+  Negocio oculta pg y conserva propósito al volver, Paso a paso
+  funciona desde el desplegable, producto 1-4 sin pg, chip Draft/
+  Borrador al alternar idioma; consola sin errores; SW único v6.
+- Archivos: `server/accounts.mjs`, `server/api.mjs`,
+  `tests/demo.test.mjs` (nuevo), `package.json`, `web/panel.html`,
+  `web/panel.js`, `web/index.html`, `web/i18n.mjs`,
+  `web/styles.css`, `web/sw.js`, `README.md`, `docs/registro.md`.
+- Evidencia: `output/playwright/demo-form-es.png`,
+  `output/playwright/demo-form-producto.png`.
+- Pendiente: commit + push si Jorge lo pide (no pedidos este
+  turno); activar PORQUE_DEMO=1 donde se necesite la demo.
+
+## Voz e imagen reales Meta (2026-11-05, encargo de Jorge)
+
+- Pretendido: arreglar el audio con `muse-voice-transcribe-1.0`,
+  usar hasta `muse-image-1.0` para el hackathon, informes, y
+  decir si se necesita otra API.
+- Terminado: contratos transcribe+imagen VERIFICADOS en docs
+  oficiales (endpoints, esquemas, errores, precios, topes);
+  transporte real con gates (ficha+env+IA+llave+reserva);
+  `POST /api/audio/transcribe` binario con validación WAV y
+  conciliación por segundos; conversión opus→WAV en navegador
+  sin otra API; `POST /api/ai/image` real con portadas 8:5 en
+  `data/img-ai/` + `image_ai` derivada por servidor; UI Hablar
+  y «Generar portada con IA» ES/EN; SW `porque-v8`; spark
+  queda doble (contrato sin verificar, decisión de alcance).
+- Verificado: suite 96/96 (22 Meta + resto); navegador ES:
+  botón IA pre/post guardado, mensaje de doble sin llave,
+  tubería WAV sintética (24 kHz→503 honesto), imageAi=true y
+  etiqueta en revisión; consola sin errores JS. CERO llamadas
+  reales (sin llave): ronda real 1 pendiente en servidor.
+- Respuesta: NO se necesita otra API (solo Meta Model API).
+- Archivos: `adapters/meta.mjs`, `adapters/meta-contracts.mjs`,
+  `server/api.mjs`, `server/main.mjs`, `shared/contracts.mjs`,
+  `web/audio-convert.mjs` (nuevo), `web/panel.html`,
+  `web/panel.js`, `web/i18n.mjs`, `web/sw.js`,
+  `tests/audio-convert.test.mjs`, `tests/transcribe.test.mjs`,
+  `tests/ai-image.test.mjs` (nuevos), `tests/helper.mjs`,
+  `tests/audio.test.mjs` (título), `package.json`,
+  `docs/H0a-contratos.md`, `docs/informe-meta-2026-11-05.md`
+  (nuevo), `README.md`, `docs/registro.md`.
+- Pendiente: llave en servidor + presupuesto + activación +
+  ronda real 1 (procedimiento en el informe); commit/push/dist
+  si Jorge lo pide.
+
+## Caja demo evento ficticio (2026-11-05, encargo de Jorge)
+
+- Pretendido: recuadro visible al entrar con opciones demo para
+  participar en un evento ficticio de recaudación y donar.
+- Terminado: sección `#demo-evento` en portada tras el hero:
+  «Cena solidaria de Panas (ficticia)» con insignia
+  DEMOSTRACIÓN, portada, meta de ejemplo $500, barra de
+  progreso, Donar (simulación: $1/$5/$10 + monto, máx
+  $10.000) y Apoyar (demo: nombre+mensaje, lista), Crear tu
+  propio evento (demo sin registro), nota de simulación y
+  Reiniciar. Todo local (localStorage): sin API, sin
+  registros, sin dinero. 24 claves ES/EN; test portada nuevo.
+- Verificado: navegador ES+EN: donar $5 ($120→$125 + gracias),
+  apoyo con nombre+mensaje en lista, reset ($120, 0 apoyos),
+  EN completo; captura `output/playwright/demo-evento-en.png`;
+  suite 96/96. Defecto encontrado y corregido: `renderDemo()`
+  antes de `getLang` (TDZ) → movido tras init.
+- Decisión: simulación local en vez de evento sembrado en BD
+  para no mezclar datos ficticios con publicaciones reales;
+  el flujo real con registros queda a un clic (demo).
+- Archivos: `web/index.html`, `web/i18n.mjs`, `web/styles.css`,
+  `web/sw.js`, `tests/homepage.test.mjs` (nuevo),
+  `package.json`, `README.md`, `docs/registro.md`.
+- Pendiente: commit/push/dist si Jorge lo pide.

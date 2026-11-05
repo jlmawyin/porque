@@ -5,6 +5,7 @@
 // en curso. Sin conexión: espejo de la ÚLTIMA VERSIÓN GUARDADA.
 import { pendingOf, canonicalDraft, contentHashOf } from '/shared/contracts.mjs';
 import { t, modalityName, initI18n } from '/i18n.mjs';
+import { recordingToWav } from '/audio-convert.mjs';
 
 const $ = (id) => document.getElementById(id);
 const L = () => getLang();
@@ -46,6 +47,7 @@ function enterApp(csrf, accountType) {
   S.accountType = accountType;
   $('login-sec').hidden = true;
   $('app').hidden = false;
+  $('demo-aviso').hidden = !S.demo;
   loadDrafts();
 }
 function showTab(which, focus) {
@@ -94,6 +96,18 @@ $('btn-register').addEventListener('click', async () => {
     else if (status === 429) fieldError('reg-error', t(L(), 'regLimit'), null);
     else fieldError('reg-error', t(L(), 'regFail', { detail: body.detail || body.error || '' }), null);
   }
+});
+$('btn-demo').addEventListener('click', async () => {
+  $('demo-msg').textContent = t(L(), 'demoStarting');
+  const { status, body } = await api('/api/demo/start', { method: 'POST', body: '{}' });
+  if (body.ok) { S.demo = true; enterApp(body.csrf, 'user'); return; }
+  $('demo-msg').textContent = status === 404 ? t(L(), 'demoUnavailable') : t(L(), 'demoError');
+});
+$('btn-demo-reset').addEventListener('click', async () => {
+  const { body } = await api('/api/demo/start', { method: 'POST', body: '{}' });
+  if (!body.ok) { $('demo-aviso-msg').textContent = t(L(), 'demoError'); return; }
+  localStorage.removeItem('porque.mirror'); // la identidad nueva empieza limpia
+  location.reload();
 });
 $('btn-login').addEventListener('click', async () => {
   const secret = $('login-secret').value;
@@ -172,14 +186,14 @@ function renderLists() {
     const ul = kind === 'initiative' ? $('drafts-initiative') : $('drafts-products');
     ul.innerHTML = lista.length
       ? lista.map((d) => `<li>${stateChip(d)} <strong>${escapeHtml(draftName(d))}</strong>
-        <button class="big" data-open="${d.id}">${escapeHtml(t(L(), 'openDraft'))}</button></li>`).join('')
+        <button class="big secundario" data-open="${d.id}">${escapeHtml(t(L(), 'openDraft'))}</button></li>`).join('')
       : `<li class="nota">${escapeHtml(t(L(), kind === 'initiative' ? 'noInitsMine' : 'noProdsMine'))}</li>`;
     const pendientes = lista.filter((d) => (d.pending ?? []).length > 0);
     const box = kind === 'initiative' ? $('resume-initiative') : $('resume-products');
     box.innerHTML = pendientes.length
       ? `<h3>${escapeHtml(t(L(), 'resumeTitle'))}</h3><ul class="lista-borradores">` + pendientes.map((d) =>
         `<li><strong>${escapeHtml(draftName(d))}</strong> <span class="nota">${escapeHtml(t(L(), 'draftMissing', { items: faltanDe(d.pending).join(', ') }))}</span>
-        <button class="big" data-open="${d.id}">${escapeHtml(t(L(), 'resumeBtn'))}</button></li>`).join('') + '</ul>'
+        <button class="big secundario" data-open="${d.id}">${escapeHtml(t(L(), 'resumeBtn'))}</button></li>`).join('') + '</ul>'
       : '';
   }
   if (S.view === 'share') renderShareList();
@@ -256,8 +270,12 @@ function showWorkspace() {
   renderLists();
   showView(ws.kind === 'initiative' ? 'initiative' : 'products', false);
   $('workspace').hidden = false;
+  $('other-ways').open = false; // el formulario empieza simple (modo C)
   $('conflict').hidden = true;
   $('proposal').hidden = true;
+  $('ai-cover-preview').hidden = true;
+  $('ai-cover-status').hidden = true;
+  $('ai-cover-status').textContent = '';
   formError(null);
   writeForm();
   renderMode();
@@ -301,14 +319,15 @@ function renderMode() {
   const presave = !ws.draft;
   $('mode-a-presave').hidden = !presave;
   $('btn-transcribe').disabled = presave;
+  $('btn-gen-cover').disabled = presave;
   $('label-name').textContent = isInit ? t(L(), 'formNameInit') : t(L(), 'fProdName');
   $('label-desc').textContent = isInit ? t(L(), 'formDescInit') : t(L(), 'fDesc');
   $('price-block').hidden = isInit;
   $('imode-block').hidden = !isInit;
   document.querySelectorAll('[data-imode]').forEach((x) =>
     x.setAttribute('aria-pressed', String(x.dataset.imode === ws.form.modality)));
-  const hidePg = isInit && ws.form.modality === 'business';
-  $('pg-block').hidden = hidePg;
+  // Propósito/meta solo aplican a iniciativas no-negocio; ocultar no borra datos.
+  $('pg-block').hidden = !isInit || ws.form.modality === 'business';
   $('init-modality-view').textContent = !isInit ? '' : ws.form.modality
     ? t(L(), 'modalityNow', { m: modalityName(L(), ws.form.modality) })
     : t(L(), 'modalityPending');
@@ -336,6 +355,8 @@ function coverLabel(ref) {
 }
 function renderSteps() {
   const ws = S.ws;
+  document.querySelector('#step1li strong').textContent =
+    t(L(), ws.kind === 'initiative' ? 'step1' : 'step1Prod');
   for (const n of [1, 2, 3]) {
     $(`step-${n}`).hidden = ws.step !== n;
     const li = $(`step${n}li`);
@@ -392,6 +413,39 @@ for (const [id, key] of [['f-name', 'name'], ['f-desc', 'description'], ['f-purp
 }
 document.querySelectorAll('input[name="cover"]').forEach((r) =>
   r.addEventListener('change', () => setForm({ imageRef: r.value })));
+$('btn-gen-cover').addEventListener('click', async () => {
+  const ws = S.ws;
+  if (!ws?.draft) return;
+  const st = $('ai-cover-status');
+  st.hidden = false;
+  st.textContent = t(L(), 'genCoverSending');
+  $('ai-cover-preview').hidden = true;
+  ws.aiCover = null;
+  const { body } = await api('/api/ai/image', {
+    method: 'POST', body: JSON.stringify({ draftId: ws.draft.id }),
+  });
+  if (!body?.ok) {
+    st.textContent = t(L(), 'genCoverFail', { detail: body?.detail ?? body?.error ?? '' });
+    return;
+  }
+  if (body.result?.fake) {
+    st.textContent = t(L(), 'genCoverDouble');
+    return;
+  }
+  ws.aiCover = body.result.imageRef;
+  $('ai-cover-img').src = body.result.imageRef;
+  $('ai-cover-preview').hidden = false;
+  st.textContent = t(L(), 'genCoverOk');
+});
+$('btn-use-ai-cover').addEventListener('click', () => {
+  const ws = S.ws;
+  if (!ws?.aiCover) return;
+  setForm({ imageRef: ws.aiCover });
+  writeForm();
+  renderCoverCurrent();
+  $('ai-cover-preview').hidden = true;
+  $('ai-cover-status').textContent = t(L(), 'coverCustom');
+});
 document.querySelector('#imode-block .modos').addEventListener('click', (e) => {
   const b = e.target.closest('[data-imode]');
   if (!b || !S.ws) return;
@@ -572,6 +626,7 @@ $('btn-rec').addEventListener('click', async () => {
       : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
     recorder = new MediaRecorder(stream, recMime ? { mimeType: recMime } : undefined);
     recChunks = [];
+    if (S.ws) S.ws.audioWav = null; // la nueva grabación sustituye a la anterior
     recorder.ondataavailable = (e) => e.data.size && recChunks.push(e.data);
     recorder.onstop = () => stream.getTracks().forEach((tr) => tr.stop());
     recorder.start();
@@ -594,26 +649,62 @@ function stopRec(cancelled) {
   $('btn-rec').disabled = false; $('btn-rec-stop').disabled = true; $('btn-rec-cancel').disabled = true;
   if (!recorder) return;
   const mime = recorder.mimeType || recMime || t(L(), 'recUnknown');
-  const bytes = recChunks.reduce((n, c) => n + c.size, 0);
+  const chunks = recChunks;
   try { recorder.stop(); } catch { /* noop */ }
   recorder = null;
-  if (cancelled) { recChunks = []; $('rec-info').textContent = t(L(), 'recCancelled'); return; }
-  api('/api/audio/intake', { method: 'POST', body: JSON.stringify({ mime, bytes, durationMs: recSecs * 1000 }) })
-    .then(({ body }) => {
-      $('rec-info').textContent = body.ok
-        ? t(L(), 'recVerdict', { mime: mime || '?', verdict: body.verdict, reason: body.reason ?? '' })
-        : t(L(), 'recRejected', { detail: body.detail ?? body.error });
-    });
   recChunks = [];
+  if (S.ws) S.ws.audioWav = null;
+  if (cancelled) { $('rec-info').textContent = t(L(), 'recCancelled'); return; }
+  // Conversión local a WAV (sin otra API) + veredicto del servidor.
+  const blob = new Blob(chunks, { type: mime.split(';')[0] || 'audio/webm' });
+  $('rec-info').textContent = t(L(), 'recConverting');
+  recordingToWav(blob).then(async ({ wav, sampleRate, seconds }) => {
+    const bytes = wav.length;
+    const { body } = await api('/api/audio/intake', {
+      method: 'POST',
+      body: JSON.stringify({ mime: 'audio/wav', bytes, durationMs: Math.round(seconds * 1000), sampleRate, channels: 1 }),
+    });
+    if (!body.ok || body.verdict !== 'accepted') {
+      $('rec-info').textContent = body.ok
+        ? t(L(), 'recVerdict', { mime: 'audio/wav', verdict: body.verdict, reason: body.reason ?? '' })
+        : t(L(), 'recRejected', { detail: body.detail ?? body.error });
+      return;
+    }
+    if (S.ws) S.ws.audioWav = { blob: new Blob([wav], { type: 'audio/wav' }), seconds };
+    $('rec-info').textContent = t(L(), 'recReady', { s: Math.round(seconds) });
+  }).catch((e) => {
+    const code = String(e?.message ?? '');
+    const key = code === 'audio-vacio' ? 'convEmpty' : code === 'audio-largo' ? 'convLong'
+      : code === 'audio-ilegible' ? 'convUnreadable' : code === 'audio-no-soportado' ? 'convUnsupported' : null;
+    $('rec-info').textContent = t(L(), 'recConvertFail', { detail: key ? t(L(), key) : code });
+  });
 }
 $('btn-rec-stop').addEventListener('click', () => stopRec(false));
 $('btn-rec-cancel').addEventListener('click', () => stopRec(true));
 $('btn-transcribe').addEventListener('click', async () => {
   const ws = S.ws;
   if (!ws?.draft) return; // Hablar requiere borrador: disponible tras guardar
-  const script = $('fake-script').value || t(L(), 'fakeScriptDefault');
-  const tt = await api('/api/audio/transcribe', { method: 'POST', body: JSON.stringify({ script }) });
-  const text = tt.body?.result?.transcript ?? '';
+  let text = '';
+  if (ws.audioWav) {
+    // Vía real: sube el WAV convertido (facturable si el servidor la activa).
+    $('rec-info').textContent = t(L(), 'transcribeSending');
+    const tt = await api('/api/audio/transcribe', {
+      method: 'POST',
+      headers: { 'content-type': 'audio/wav', 'x-audio-language': L() },
+      body: ws.audioWav.blob,
+    });
+    if (!tt.body?.ok) {
+      $('rec-info').textContent = tt.status === 503 ? t(L(), 'transcribeDisabled')
+        : t(L(), 'transcribeRealFail', { detail: tt.body?.detail ?? tt.body?.error ?? tt.status });
+      return;
+    }
+    text = tt.body.result.transcript ?? '';
+    $('rec-info').textContent = t(L(), 'transcribeRealOk', { s: tt.body.result.secondsBilled ?? '?' });
+  } else {
+    const script = $('fake-script').value || t(L(), 'fakeScriptDefault');
+    const tt = await api('/api/audio/transcribe', { method: 'POST', body: JSON.stringify({ script }) });
+    text = tt.body?.result?.transcript ?? '';
+  }
   const { body } = await api('/api/ai/propose', {
     method: 'POST', body: JSON.stringify({ draftId: ws.draft.id, baseRevision: ws.draft.revision, text }),
   });
@@ -750,6 +841,7 @@ function renderPreview() {
   $('review').setAttribute('tabindex', '-1');
   $('review').innerHTML = `<h3>${escapeHtml(t(L(), 'previewTitle'))}</h3>
     <img class="previa-portada" src="${escapeHtml(coverFor(s.imageRef, ws.kind))}" alt="${escapeHtml(t(L(), 'coverPreviewAlt'))}">
+    ${s.imageAi ? `<p><span class="etiqueta-ia">${escapeHtml(t(L(), 'aiImg'))}</span></p>` : ''}
     ${isInit && s.modality ? `<p><span class="etiqueta-modalidad">${escapeHtml(modalityName(L(), s.modality))}</span></p>` : ''}
     <p class="previa-nombre"><strong>${escapeHtml(s.name ?? '—')}</strong></p>
     ${Number.isInteger(s.priceCents) && !isInit ? `<p class="precio">$${(s.priceCents / 100).toFixed(2)} USD</p>` : ''}
@@ -871,7 +963,7 @@ function renderShareList() {
       <h3>${escapeHtml(draftName(d))} ${stateChip(d)}</h3>
       <div class="ctas">
         <button class="big" data-act="ver">${escapeHtml(t(L(), 'btnSeePage'))}</button>
-        <button class="big" data-act="copiar">${escapeHtml(t(L(), 'copyLink'))}</button>
+        <button class="big secundario" data-act="copiar">${escapeHtml(t(L(), 'copyLink'))}</button>
         ${isInit ? `<button class="big" data-act="qr">${escapeHtml(t(L(), 'qrDownload'))}</button>` : ''}
       </div>
       <p role="status" data-estado></p>
@@ -973,6 +1065,7 @@ function refreshLang() {
   }
   renderMode();
   renderSteps();
+  if (!ws.saving) renderWsStatus(); // chip + meta en el idioma actual
   renderCoverCurrent();
   if (!$('conflict').hidden && ws.conflict) showConflict(ws.conflict);
   if (!$('proposal').hidden && ws.proposal) showProposal(ws.proposal.p, ws.proposal.text);
@@ -989,6 +1082,7 @@ if (new URLSearchParams(location.search).get('a') === 'registro') showTab('regis
 api('/api/auth/status').then(({ body: st }) => {
   if (!st.ok) return;
   api('/api/account/me').then(({ body }) => {
+    S.demo = body?.demo === true;
     enterApp(st.csrf, body?.user ? 'user' : 'legacy');
   });
 });

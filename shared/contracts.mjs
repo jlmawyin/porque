@@ -28,6 +28,8 @@ export const ErrorCodes = Object.freeze({
   REAL_AI_DISABLED: 'REAL_AI_DISABLED',
   AUDIO_UNSUPPORTED: 'AUDIO_UNSUPPORTED',
   AUDIO_CONVERT_REQUIRED: 'AUDIO_CONVERT_REQUIRED',
+  AUDIO_TOO_LARGE: 'AUDIO_TOO_LARGE',
+  META_ERROR: 'META_ERROR',
   ACCOUNT_EXISTS: 'ACCOUNT_EXISTS',
 });
 
@@ -271,13 +273,15 @@ export function validateSupport(body) {
   };
 }
 
-// ---- Audio (contrato H0a; objetivo de conversión pendiente de confirmación oficial) ----
+// ---- Audio (contrato H0a-transcribe verificado en docs oficiales 2026-11-05) ----
 export const AUDIO_TARGET = Object.freeze({
   container: 'wav',
   encoding: 'pcm16',
   channels: 1,
   sampleRates: [16000, 24000],
   maxMinutes: 10,
+  maxBytes: 32 * 1024 * 1024,
+  nativeRate: 24000,
 });
 
 export function audioIntakeVerdict(meta) {
@@ -293,5 +297,36 @@ export function audioIntakeVerdict(meta) {
   if (isWav && ch === 1 && AUDIO_TARGET.sampleRates.includes(sr)) {
     return { verdict: 'accepted', target: AUDIO_TARGET };
   }
-  return { verdict: 'convert-required', target: AUDIO_TARGET, reason: `captura ${mime || '?'} → convertir a WAV PCM16 mono 16/24 kHz (contrato H0a por confirmar)` };
+  return { verdict: 'convert-required', target: AUDIO_TARGET, reason: `captura ${mime || '?'} → convertir a WAV PCM16 mono 16/24 kHz` };
+}
+
+// Valida bytes WAV PCM16 mono 16/24 kHz (lo que exige Meta). Puro, sin DOM:
+// lo usan el servidor y los tests. No decodifica audio, solo cabecera+topes.
+export function parseWavPcm16(bytes) {
+  const b = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes ?? []);
+  const fail = (reason) => ({ ok: false, reason });
+  if (b.length < 44) return fail('wav demasiado corto');
+  if (b.length > AUDIO_TARGET.maxBytes) return fail('audio supera 32 MB');
+  const ascii = (o, n) => String.fromCharCode(...b.slice(o, o + n));
+  if (ascii(0, 4) !== 'RIFF' || ascii(8, 4) !== 'WAVE') return fail('no es RIFF/WAVE');
+  const u16 = (o) => b[o] | (b[o + 1] << 8);
+  const u32 = (o) => b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24);
+  if (ascii(12, 4) !== 'fmt ' || u16(20) !== 1) return fail('formato no PCM');
+  if (u16(22) !== 1) return fail('no es mono');
+  const sampleRate = u32(24);
+  if (!AUDIO_TARGET.sampleRates.includes(sampleRate)) return fail('tasa no admitida (16/24 kHz)');
+  if (u16(34) !== 16) return fail('no es 16 bits');
+  // Localiza el bloque data (puede haber bloques extra entre fmt y data).
+  let o = 12 + 8 + u32(16);
+  let dataBytes = 0;
+  while (o + 8 <= b.length) {
+    const id = ascii(o, 4);
+    const size = u32(o + 4);
+    if (id === 'data') { dataBytes = size; break; }
+    o += 8 + size + (size % 2);
+  }
+  if (!dataBytes) return fail('sin bloque data');
+  const seconds = dataBytes / (sampleRate * 2);
+  if (!(seconds > 0) || seconds > AUDIO_TARGET.maxMinutes * 60) return fail('duración fuera de rango (máx 10 min)');
+  return { ok: true, sampleRate, channels: 1, bits: 16, dataBytes, seconds };
 }

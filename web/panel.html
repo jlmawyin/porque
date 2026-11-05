@@ -56,6 +56,10 @@
     <p id="reg-error" class="error" role="alert" hidden></p>
     <button id="btn-register" class="big" data-i18n="btnCreateEnter">Crear cuenta y entrar</button>
   </div>
+  <div id="demo-block">
+    <button id="btn-demo" class="big secundario" data-i18n="tryDemo">Probar la demo sin registrarse</button>
+    <p id="demo-msg" class="nota" role="status" data-i18n="demoNote">Entra con una cuenta demo desechable, sin correo ni contraseña.</p>
+  </div>
   <p id="login-msg" role="status"></p>
   <details>
     <summary data-i18n="legacySummary">Acceso anterior con secreto (demo)</summary>
@@ -68,6 +72,8 @@
   <div class="ctas">
     <button id="btn-logout" class="big" data-i18n="btnLogout">Salir</button>
   </div>
+  <p id="demo-aviso" class="nota demo-aviso" hidden><span id="demo-aviso-msg" data-i18n="demoBanner">Modo demo: pruebas con una cuenta desechable.</span>
+    <button id="btn-demo-reset" class="secundario" data-i18n="restartDemo">Reiniciar demo</button></p>
 
   <section id="welcome" class="tarjeta" hidden aria-labelledby="welcome-titulo">
     <h2 id="welcome-titulo" data-i18n="welcomeTitle">Vamos a crear tu espacio, porque somos panas.</h2>
@@ -118,7 +124,7 @@
   </section>
 
   <section id="workspace" class="bloque" hidden aria-labelledby="ws-title">
-    <button id="btn-workspace-back" class="big" data-i18n="wsBack">← Volver a la lista</button>
+    <button id="btn-workspace-back" class="big secundario" data-i18n="wsBack">← Volver a la lista</button>
     <h2 id="ws-title" tabindex="-1">Tu iniciativa</h2>
     <p><span id="ws-state" class="chip"></span></p>
     <ol id="steps" aria-label="Pasos" data-i18n-aria="stepsLabel">
@@ -129,18 +135,28 @@
     <p id="draft-meta" role="status"></p>
 
     <div id="step-1">
-      <p class="nota" data-i18n="modesNote">Completa el formulario como prefieras: hablando, paso a paso o escribiendo. Todo se guarda con Guardar y continuar.</p>
-      <div id="product-modes" class="modos" role="group" aria-label="Modo de entrada" data-i18n-aria="modeGroup">
-        <button data-mode="A" aria-pressed="false" class="big" data-i18n="modeA">Hablar</button>
-        <button data-mode="B" aria-pressed="false" class="big" data-i18n="modeB">Paso a paso</button>
-        <button data-mode="C" aria-pressed="true" class="big" data-i18n="modeC">Escribir o tocar</button>
-      </div>
+      <details id="other-ways">
+        <summary data-i18n="otherWays">Otras formas de completar</summary>
+        <p class="nota" data-i18n="modesNote">Completa el formulario como prefieras: hablando, paso a paso o escribiendo. Todo se guarda con Guardar y continuar.</p>
+        <div id="product-modes" class="modos" role="group" aria-label="Modo de entrada" data-i18n-aria="modeGroup">
+          <button data-mode="A" aria-pressed="false" class="big" data-i18n="modeA">Hablar</button>
+          <button data-mode="B" aria-pressed="false" class="big" data-i18n="modeB">Paso a paso</button>
+          <button data-mode="C" aria-pressed="true" class="big" data-i18n="modeC">Escribir o tocar</button>
+        </div>
+      </details>
 
       <div id="mode-C">
-        <label><span id="label-name">Nombre</span> <input id="f-name" maxlength="120"></label>
-        <label><span id="label-desc">Descripción</span> <textarea id="f-desc" rows="3"></textarea></label>
-        <div id="price-block" role="group" aria-label="Precio" data-i18n-aria="priceGroup">
+        <div class="campo">
+          <label><span id="label-name">Nombre</span> <input id="f-name" maxlength="120"></label>
+          <p class="ayuda" data-i18n="nameHelp">Se verá en tu página pública.</p>
+        </div>
+        <div class="campo">
+          <label><span id="label-desc">Descripción</span> <textarea id="f-desc" rows="3"></textarea></label>
+          <p class="ayuda" data-i18n="descHelp">Cuéntalo en una o dos frases.</p>
+        </div>
+        <div class="campo" id="price-block" role="group" aria-label="Precio" data-i18n-aria="priceGroup">
           <p><strong data-i18n="priceGroup">Precio</strong></p>
+          <p class="ayuda" data-i18n="priceHelp">Elige un precio o escribe el tuyo.</p>
           <button id="p-minus" class="big" aria-label="Bajar precio" data-i18n-aria="priceDown">−</button>
           <button id="p-plus" class="big" aria-label="Subir precio" data-i18n-aria="priceUp">+</button>
           <button data-quick="100" class="big">$1</button>
@@ -149,7 +165,16 @@
           <label><span data-i18n="fPriceDirect">Entrada directa (p. ej. «cinco dólares»)</span> <input id="f-price-text" placeholder="cinco dólares" data-i18n-ph="fPriceDirectPh"></label>
           <p id="f-price-view"></p>
         </div>
-        <fieldset id="cover-block">
+        <div class="campo" id="imode-block">
+          <p><strong data-i18n="modalityTitle">Modalidad</strong></p>
+          <div class="modos" role="group" aria-label="Modalidad de la iniciativa" data-i18n-aria="imodeGroup">
+            <button data-imode="donations" aria-pressed="false" class="big"><span data-i18n="modalityDonations">Donaciones</span> <small data-i18n="modDonDesc">para recibir apoyo</small></button>
+            <button data-imode="business" aria-pressed="false" class="big"><span data-i18n="modalityBusiness">Negocio</span> <small data-i18n="modBizDesc">para ofrecer productos o servicios</small></button>
+            <button data-imode="both" aria-pressed="false" class="big"><span data-i18n="modalityBoth">Ambas</span> <small data-i18n="modBothDesc">las dos cosas</small></button>
+          </div>
+          <p id="init-modality-view" aria-live="polite"></p>
+        </div>
+        <fieldset class="campo" id="cover-block">
           <legend data-i18n="coverTitle">Portada</legend>
           <p class="nota" data-i18n="coverNote">Elige una ilustración para tu página. Son dibujos decorativos, no fotos reales.</p>
           <div class="covers" role="radiogroup" aria-label="Portada" data-i18n-aria="coverTitle">
@@ -160,16 +185,18 @@
             <label class="cover-opt"><input type="radio" name="cover" value=""><img src="/img/portada-apoyo.svg" data-i18n-alt="coverAuto" alt="Automática"><span data-i18n="coverAuto">Automática</span></label>
           </div>
           <p class="nota" id="cover-current" hidden></p>
-        </fieldset>
-        <div id="imode-block">
-          <div class="modos" role="group" aria-label="Modalidad de la iniciativa" data-i18n-aria="imodeGroup">
-            <button data-imode="donations" aria-pressed="false" class="big" data-i18n="modalityDonations">Donaciones</button>
-            <button data-imode="business" aria-pressed="false" class="big" data-i18n="modalityBusiness">Negocio</button>
-            <button data-imode="both" aria-pressed="false" class="big" data-i18n="modalityBoth">Ambas</button>
+          <div id="ai-cover-box">
+            <button id="btn-gen-cover" class="big secundario" data-i18n="genCover">Generar portada con IA</button>
+            <p class="nota" data-i18n="genCoverNote">Crea una ilustración con IA de Meta a partir del nombre y la presentación. Disponible tras el primer guardado; donde esté activada cuesta $0.01 por imagen.</p>
+            <p id="ai-cover-status" class="nota" role="status" hidden></p>
+            <div id="ai-cover-preview" hidden>
+              <img id="ai-cover-img" class="previa-portada" data-i18n-alt="aiCoverPreviewAlt" alt="Vista previa de la portada generada">
+              <p><button id="btn-use-ai-cover" class="big" data-i18n="useAiCover">Usar esta portada</button></p>
+            </div>
           </div>
-          <p id="init-modality-view" aria-live="polite"></p>
-        </div>
-        <div id="pg-block">
+        </fieldset>
+        <div class="campo" id="pg-block">
+          <p><strong data-i18n="pgTitle">Propósito y meta (opcional)</strong></p>
           <label><span data-i18n="fPurpose">Propósito</span> <textarea id="f-purpose" rows="2"></textarea></label>
           <label><span data-i18n="fGoal">Meta en USD (opcional, p. ej. 100)</span> <input id="f-goal" inputmode="decimal" placeholder="100"></label>
           <p id="f-goal-view"></p>
@@ -185,7 +212,7 @@
         <button id="btn-rec-cancel" class="big" disabled data-i18n="btnRecCancel">Cancelar</button>
         <p id="rec-info" class="nota"></p>
         <label><span data-i18n="fFakeScript">Texto para el doble de transcripción (prueba, no es voz real)</span> <input id="fake-script" placeholder="Galletas, cinco dólares" data-i18n-ph="fFakeScriptPh"></label>
-        <button id="btn-transcribe" class="big" data-i18n="btnTranscribe">Transcribir (doble)</button>
+        <button id="btn-transcribe" class="big" data-i18n="btnTranscribe">Transcribir</button>
         <div id="proposal" class="diff" hidden></div>
       </div>
 
@@ -201,9 +228,9 @@
       <p id="form-error" class="error" role="alert" hidden></p>
       <div class="ctas">
         <button id="btn-save-continue" class="big" data-i18n="saveContinue">Guardar y continuar</button>
-        <button id="btn-cancel-form" class="big" data-i18n="cancelForm">Cancelar</button>
+        <button id="btn-cancel-form" class="big secundario" data-i18n="cancelForm">Cancelar</button>
       </div>
-      <p><button id="btn-recover" class="big" hidden data-i18n="recoverDraft">Recuperar borrador</button></p>
+      <p><button id="btn-recover" class="big secundario" hidden data-i18n="recoverDraft">Recuperar borrador</button></p>
       <p class="nota" id="recover-note" hidden data-i18n="recoverNote">Recupera la última versión guardada en este navegador. No incluye lo escrito sin guardar.</p>
     </div>
 
@@ -211,7 +238,7 @@
       <div id="review" class="previa"></div>
       <p id="review-missing" class="nota" role="status"></p>
       <div class="ctas">
-        <button id="btn-back-edit" class="big" data-i18n="backEdit">Volver a editar</button>
+        <button id="btn-back-edit" class="big secundario" data-i18n="backEdit">Volver a editar</button>
         <button id="btn-publish" class="big" data-i18n="btnPublish">Confirmar y publicar</button>
       </div>
     </div>
@@ -220,7 +247,7 @@
       <div id="publish-result" aria-live="polite"></div>
       <div class="ctas">
         <button id="btn-ver-pagina" class="big" data-i18n="btnSeePage">Ver mi página</button>
-        <button id="btn-copiar-enlace" class="big" data-i18n="copyLink">Copiar enlace</button>
+        <button id="btn-copiar-enlace" class="big secundario" data-i18n="copyLink">Copiar enlace</button>
         <button id="btn-descargar-qr" class="big" data-i18n="qrDownload">Descargar QR</button>
       </div>
       <p id="publish-result-estado" role="status"></p>

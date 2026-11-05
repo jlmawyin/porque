@@ -31,6 +31,32 @@ npm test                       # suite automatizada
 El secreto vive en `.env` o `data/.secret` (privados, ignorados por git).
 Nunca aparece en código, commits, logs ni navegador.
 
+## Demo para jueces (opcional)
+
+Desactivada por defecto. Para permitir entrar sin registro:
+
+```powershell
+$env:PORQUE_DEMO='1'; npm start
+```
+
+Cada clic en «Probar la demo» crea una cuenta desechable nueva
+(`demo-*@porque.demo`, sin contraseña conocida) y «Reiniciar demo»
+cambia a otra identidad limpia. Sin PORQUE_DEMO=1 la ruta responde
+404 como si no existiera.
+
+La portada incluye además un evento ficticio («Cena solidaria de
+Panas») con donación y apoyo simulados solo en el navegador: no
+mueve dinero ni crea registros.
+
+## Voz e imagen reales (Meta, apagadas por defecto)
+
+Transcripción (`muse-voice-transcribe-1.0`) y portadas
+(`muse-image-1.0`) con contratos verificados en docs oficiales.
+Exigen llave y activación explícita en servidor; sin ellas, la
+voz responde `REAL_AI_DISABLED` y la imagen usa el doble.
+Contratos, costos ($0.18/h voz, $0.01/imagen), topes y
+activación paso a paso: `docs/informe-meta-2026-11-05.md`.
+
 ## Estructura
 
 - `web/` — PWA (portada, Explorar, página de iniciativa, Mi espacio

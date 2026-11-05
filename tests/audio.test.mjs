@@ -6,7 +6,7 @@ describe('audio: intake y doble de transcripción', async () => {
   const t = await startTestServer();
   after(() => t.close());
 
-  it('WAV PCM16 mono 16 kHz: aceptado (contrato H0a por confirmar)', async () => {
+  it('WAV PCM16 mono 16 kHz: aceptado (contrato H0a verificado)', async () => {
     const r = await t.api('/api/audio/intake', {
       method: 'POST',
       body: JSON.stringify({ mime: 'audio/wav', bytes: 32000, durationMs: 2000, sampleRate: 16000, channels: 1 }),

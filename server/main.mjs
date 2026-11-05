@@ -1,7 +1,7 @@
 // Porque — mismo origen: API + PWA estática. Sin dependencias.
 import { createServer } from 'node:http';
 import { readFileSync, existsSync } from 'node:fs';
-import { join, extname, normalize } from 'node:path';
+import { join, extname, normalize, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openDb } from './db.mjs';
 import { loadSellerSecret, ensureSeller } from './auth.mjs';
@@ -28,8 +28,21 @@ const MIME = {
   '.png': 'image/png',
 };
 
-function serveStatic(req, res) {
+const AI_COVER_RE = /^\/img\/ai\/([0-9a-f-]+\.(?:png|jpe?g))$/;
+
+function serveStatic(req, res, imgDir) {
   const url = new URL(req.url, 'http://local');
+  const mAi = AI_COVER_RE.exec(url.pathname);
+  if (mAi) {
+    const path = join(imgDir, mAi[1]);
+    if (!existsSync(path)) return false;
+    res.writeHead(200, {
+      'content-type': mAi[1].endsWith('.png') ? 'image/png' : 'image/jpeg',
+      'cache-control': 'public, max-age=31536000, immutable',
+    });
+    res.end(readFileSync(path));
+    return true;
+  }
   let rel;
   if (url.pathname === '/') rel = 'web/index.html';
   else if (url.pathname === '/panel') rel = 'web/panel.html';
@@ -51,15 +64,17 @@ function serveStatic(req, res) {
   return true;
 }
 
-export function createApp({ dbPath, publicBase = '', secret } = {}) {
-  const db = openDb(dbPath ?? join(ROOT, 'data', 'porque.sqlite'));
+export function createApp({ dbPath, publicBase = '', secret, imgDir, metaFetch } = {}) {
+  const resolvedDb = dbPath ?? join(ROOT, 'data', 'porque.sqlite');
+  const db = openDb(resolvedDb);
   const sellerSecret = secret ?? loadSellerSecret({ file: join(ROOT, 'data', '.secret') });
   ensureSeller(db, sellerSecret);
-  const router = createRouter(db, { publicBase });
+  const resolvedImgDir = imgDir ?? join(dirname(resolvedDb), 'img-ai');
+  const router = createRouter(db, { publicBase, imgDir: resolvedImgDir, metaFetch });
   const server = createServer(async (req, res) => {
     try {
       if (req.method === 'GET' && !req.url.startsWith('/api/')) {
-        if (serveStatic(req, res)) return;
+        if (serveStatic(req, res, resolvedImgDir)) return;
         res.writeHead(404).end('no encontrado');
         return;
       }

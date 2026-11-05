@@ -8,10 +8,10 @@ import { createApp } from '../server/main.mjs';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const TEST_SECRET = 'test-secreto-robusto-0123456789abcdef';
 
-export async function startTestServer() {
+export async function startTestServer({ imgDir, metaFetch } = {}) {
   const name = `.test-${randomUUID()}.sqlite`;
   const dbPath = join(ROOT, 'data', name);
-  const { server, db } = createApp({ dbPath, secret: TEST_SECRET });
+  const { server, db } = createApp({ dbPath, secret: TEST_SECRET, imgDir, metaFetch });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const port = server.address().port;
   const base = `http://127.0.0.1:${port}`;

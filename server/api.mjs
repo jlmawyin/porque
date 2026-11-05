@@ -1,17 +1,20 @@
 // API mismo origen de Porque. JSON, sesiones en cookie httpOnly + CSRF.
 // Precios y totales solo en servidor, centavos enteros.
 import { randomUUID } from 'node:crypto';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   ErrorCodes, isUuid, validateDraftCreate, validateDraftPatch, pendingOf,
   canonicalDraft, contentHashOf, totalCents, audioIntakeVerdict,
-  publicInitiativeUrl, SUPPORT_LABEL, validateSupport,
+  publicInitiativeUrl, SUPPORT_LABEL, validateSupport, parseWavPcm16, AUDIO_TARGET,
+  AI_IMAGE_LABEL,
 } from '../shared/contracts.mjs';
 import { audit, nowIso } from './db.mjs';
 import { sessionOf, login, logout, sessionCookie, clearSessionCookie } from './auth.mjs';
-import { registerUser, loginUser, logoutUser, meOf } from './accounts.mjs';
-import { status as limitsStatus, reserve } from './limits.mjs';
+import { registerUser, loginUser, logoutUser, meOf, startDemo } from './accounts.mjs';
+import { status as limitsStatus, reserve, reconcile, holdUncertain } from './limits.mjs';
 import { fakeTranscribe, fakePropose, fakeDescribe, fakeImage } from '../adapters/fakes.mjs';
-import { requireRealContract, RealAiDisabledError } from '../adapters/meta.mjs';
+import { requireRealContract, RealAiDisabledError, transcribeClip, generateCover, MetaApiError } from '../adapters/meta.mjs';
 
 const MAX_JSON = 256 * 1024;
 const REVIEW_TTL_MS = 15 * 60 * 1000;
@@ -37,6 +40,25 @@ export function readJson(req) {
         reject(Object.assign(new Error('JSON inválido'), { status: 400 }));
       }
     });
+    req.on('error', reject);
+  });
+}
+
+export function readBytes(req, max) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on('data', (c) => {
+      size += c.length;
+      if (size > max) {
+        // Drena sin guardar para poder responder 413 (destruir cortaría la respuesta).
+        chunks.length = 0;
+        reject(Object.assign(new Error('cuerpo supera el máximo'), { status: 413 }));
+        return;
+      }
+      chunks.push(c);
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
   });
 }
@@ -146,6 +168,11 @@ function draftOwned(db, id, s) {
     : db.prepare('SELECT * FROM drafts WHERE id = ? AND owner_user_id IS NULL').get(id);
 }
 
+// image_ai la deriva el servidor: solo las portadas generadas por este
+// servidor (/img/ai/<uuid>.png) llevan la etiqueta IA. El cliente nunca
+// la envía; un imageRef ajeno jamás queda marcado.
+const aiCoverOf = (ref) => (/^\/img\/ai\/[0-9a-f-]+\.(png|jpe?g)$/.test(ref ?? '') ? 1 : 0);
+
 function authn(db, req, res) {
   const s = sessionOf(db, req.headers.cookie);
   if (!s) {
@@ -163,8 +190,79 @@ function csrf(req, res, session) {
   return true;
 }
 
+// Vía real Meta one-shot (contrato H0a-transcribe verificado 2026-11-05).
+// Apagada por defecto: exige ficha verificada + META_CONTRACTS_VERIFIED=1
+// + IA habilitada en BD + META_MODEL_API_KEY + reserva de tope previa.
+// Contabilidad honesta: reserva por minuto redondeado arriba; éxito
+// concilia a segundos reales (Meta factura segundos enteros hacia abajo);
+// rechazo 4xx/429 de Meta libera la reserva; fallo incierto la retiene
+// sin reintento automático. Nunca guarda audio ni transcript en auditoría.
+async function transcribeReal(db, req, res, metaFetch) {
+  let raw;
+  try {
+    raw = await readBytes(req, AUDIO_TARGET.maxBytes);
+  } catch (e) {
+    return err(res, 413, ErrorCodes.AUDIO_TOO_LARGE, 'audio supera 32 MB');
+  }
+  const w = parseWavPcm16(raw);
+  if (!w.ok) return err(res, 415, ErrorCodes.AUDIO_UNSUPPORTED, w.reason);
+  const { aiEnabled } = await import('./limits.mjs');
+  try {
+    const { key } = requireRealContract('transcribe', { aiEnabled: aiEnabled(db) });
+    const minutes = Math.max(1, Math.ceil(w.seconds / 60));
+    const r = reserve(db, req.session.id, 'transcribe', minutes);
+    if (!r.ok) return err(res, r.disabled ? 503 : 429, r.reason);
+    const billed = Math.floor(w.seconds); // Meta factura segundos enteros hacia abajo
+    const metaSession = randomUUID();
+    const lang = String(req.headers['x-audio-language'] ?? '').toLowerCase().startsWith('en') ? 'en' : 'es';
+    try {
+      const out = await transcribeClip({ wavBytes: raw, language: lang, key, sessionId: metaSession, fetchImpl: metaFetch });
+      reconcile(db, r.reservationId, billed / 60);
+      audit(db, 'seller', 'audio.transcribed', 'meta:' + metaSession, `${billed}s facturables (reserva ${minutes} min)`);
+      return send(res, 200, {
+        ok: true,
+        result: {
+          fake: false, transcript: out.transcript, turns: out.turns,
+          secondsBilled: billed, sessionId: out.sessionId,
+          note: 'Transcripción real de Meta (facturable por audio procesado).',
+        },
+      });
+    } catch (e) {
+      if (!(e instanceof MetaApiError)) throw e;
+      if (e.status === 200) { // respondió tras procesar pero inservible: se concilia y se informa
+        reconcile(db, r.reservationId, billed / 60);
+        audit(db, 'seller', 'audio.transcribe_bad_response', 'meta:' + metaSession, 'HTTP 200 sin transcript');
+        return err(res, 502, ErrorCodes.META_ERROR, `Meta respondió sin transcripción (sesión ${metaSession})`);
+      }
+      if (e.status === 429) {
+        reconcile(db, r.reservationId, 0);
+        return err(res, 429, ErrorCodes.RATE_LIMITED, `Meta ${e.type ?? 'límite alcanzado'}: reintenta más tarde (sin reintento automático)`);
+      }
+      if (e.status >= 400 && e.status < 500) {
+        reconcile(db, r.reservationId, 0);
+        return err(res, 400, ErrorCodes.BAD_REQUEST, `Meta rechazó el audio (HTTP ${e.status}${e.type ? ` ${e.type}` : ''})`);
+      }
+      holdUncertain(db, r.reservationId, `meta ${e.status} ${e.type ?? ''} sesión ${metaSession}`);
+      return err(res, 502, ErrorCodes.META_ERROR,
+        `Meta no devolvió transcripción (HTTP ${e.status}${e.type ? ` ${e.type}` : ''}; sesión ${metaSession}; reserva retenida)`);
+    }
+  } catch (e) {
+    if (e instanceof RealAiDisabledError) return err(res, 503, ErrorCodes.REAL_AI_DISABLED, e.message);
+    throw e;
+  }
+}
+
+// Prompt de portada: lo arma el servidor desde el borrador (nombre y
+// presentación, acotados) con estilo fijo de ilustración decorativa.
+export function coverPrompt(d) {
+  const bits = [d?.name, d?.description].map((s) => String(s ?? '').trim()).filter(Boolean).join(' — ').slice(0, 300);
+  return `Original decorative illustration for a community initiative cover, warm and friendly, no text, no real people, no brands, no logos: ${bits || 'community support'}`;
+}
+
 export function createRouter(db, opts = {}) {
   const publicBase = opts.publicBase ?? '';
+  const imgDir = opts.imgDir ?? join(process.cwd(), 'data', 'img-ai');
+  const metaFetch = opts.metaFetch; // solo tests: si falta, fetch global
   return async function route(req, res) {
     const url = new URL(req.url, 'http://local');
     const { pathname } = url;
@@ -204,6 +302,15 @@ export function createRouter(db, opts = {}) {
         return err(res, 400, ErrorCodes.BAD_REQUEST, (r.errors ?? ['registro inválido']).join('; '));
       }
       return send(res, 201, { ok: true, user: r.user, csrf: r.csrf, expires: r.expires },
+        { 'set-cookie': r.setCookie });
+    }
+    // Demo para jueces: entrada sin registro. Desactivada por defecto; cuando
+    // no está habilitada responde 404 como si no existiera.
+    if (method === 'POST' && pathname === '/api/demo/start') {
+      if (process.env.PORQUE_DEMO !== '1') return err(res, 404, ErrorCodes.NOT_FOUND);
+      const r = startDemo(db);
+      if (!r.ok) return err(res, 429, ErrorCodes.RATE_LIMITED, 'límite de demos alcanzado, intenta más tarde');
+      return send(res, 201, { ok: true, user: r.user, csrf: r.csrf, expires: r.expires, demo: true },
         { 'set-cookie': r.setCookie });
     }
     if (method === 'POST' && pathname === '/api/account/login') {
@@ -461,10 +568,10 @@ export function createRouter(db, opts = {}) {
       return idempotent(db, res, body.clientOpId, 'drafts.create', () => {
         const id = randomUUID();
         const now = nowIso();
-        db.prepare(`INSERT INTO drafts (id, kind, name, price_cents, description, image_ref, modality, purpose, goal_cents,
-          created_at, updated_at, owner_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+        db.prepare(`INSERT INTO drafts (id, kind, name, price_cents, description, image_ref, image_ai, modality, purpose, goal_cents,
+          created_at, updated_at, owner_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
           id, vc.value.kind, initial?.name ?? null, initial?.priceCents ?? null, initial?.description ?? null,
-          initial?.imageRef ?? null, initial?.modality ?? null, initial?.purpose ?? null, initial?.goalCents ?? null,
+          initial?.imageRef ?? null, aiCoverOf(initial?.imageRef), initial?.modality ?? null, initial?.purpose ?? null, initial?.goalCents ?? null,
           now, now, req.session.user_id ?? null,
         );
         audit(db, 'seller', 'draft.created', 'draft:' + id);
@@ -510,8 +617,8 @@ export function createRouter(db, opts = {}) {
           const now = nowIso();
           db.prepare(
             `UPDATE drafts SET revision = revision + 1, status = 'draft', name = ?, price_cents = ?,
-             description = ?, image_ref = ?, modality = ?, purpose = ?, goal_cents = ?, updated_at = ? WHERE id = ?`,
-          ).run(next.name ?? null, next.priceCents ?? null, next.description ?? null, next.imageRef ?? null,
+             description = ?, image_ref = ?, image_ai = ?, modality = ?, purpose = ?, goal_cents = ?, updated_at = ? WHERE id = ?`,
+          ).run(next.name ?? null, next.priceCents ?? null, next.description ?? null, next.imageRef ?? null, aiCoverOf(next.imageRef),
             next.modality ?? null, next.purpose ?? null, next.goalCents ?? null, now, id);
           db.prepare('DELETE FROM reviews WHERE draft_id = ?').run(id); // cambiar invalida revisiones
           const updated = withPublished(db, draftOf(db.prepare('SELECT * FROM drafts WHERE id = ?').get(id)));
@@ -584,8 +691,8 @@ export function createRouter(db, opts = {}) {
           const now = nowIso();
           db.prepare(
             `UPDATE drafts SET revision = revision + 1, status = 'draft', name = ?, price_cents = ?,
-             description = ?, image_ref = ?, modality = ?, purpose = ?, goal_cents = ?, updated_at = ? WHERE id = ?`,
-          ).run(snap.name ?? null, snap.priceCents ?? null, snap.description ?? null, snap.imageRef ?? null,
+             description = ?, image_ref = ?, image_ai = ?, modality = ?, purpose = ?, goal_cents = ?, updated_at = ? WHERE id = ?`,
+          ).run(snap.name ?? null, snap.priceCents ?? null, snap.description ?? null, snap.imageRef ?? null, aiCoverOf(snap.imageRef),
             snap.modality ?? null, snap.purpose ?? null, snap.goalCents ?? null, now, id);
           db.prepare('DELETE FROM reviews WHERE draft_id = ?').run(id);
         }
@@ -619,7 +726,48 @@ export function createRouter(db, opts = {}) {
       if (body.__e) return err(res, body.__e.status ?? 400, ErrorCodes.BAD_REQUEST, body.__e.message);
       const row = draftOwned(db, body.draftId, req.session);
       if (!row) return err(res, 404, ErrorCodes.NOT_FOUND);
-      return send(res, 200, { ok: true, result: fakeImage({ draft: draftOf(row) }) });
+      // Real cuando está habilitada (contrato H0a-image verificado); si no,
+      // doble (comportamiento anterior, etiquetado como falso).
+      try {
+        const { aiEnabled } = await import('./limits.mjs');
+        const { key } = requireRealContract('image', { aiEnabled: aiEnabled(db) });
+        const r = reserve(db, req.session.id, 'image', 1);
+        if (!r.ok) return err(res, r.disabled ? 503 : 429, r.reason);
+        const d = draftOf(row);
+        try {
+          const out = await generateCover({ prompt: coverPrompt(d), key, fetchImpl: metaFetch });
+          const name = `${randomUUID()}.${out.format === 'jpeg' ? 'jpg' : 'png'}`;
+          mkdirSync(imgDir, { recursive: true });
+          writeFileSync(join(imgDir, name), out.bytes);
+          reconcile(db, r.reservationId, 1);
+          audit(db, 'seller', 'ai.image_generated', 'draft:' + d.id, `1 imagen $0.01 (${name})`);
+          return send(res, 200, {
+            ok: true,
+            result: {
+              fake: false, imageRef: '/img/ai/' + name, label: AI_IMAGE_LABEL,
+              note: 'Portada real generada con Meta ($0.01 por imagen).',
+            },
+          });
+        } catch (e) {
+          if (!(e instanceof MetaApiError)) throw e;
+          if (e.status === 429) {
+            reconcile(db, r.reservationId, 0);
+            return err(res, 429, ErrorCodes.RATE_LIMITED, `Meta ${e.type ?? 'límite alcanzado'}: reintenta más tarde (sin reintento automático)`);
+          }
+          if (e.status >= 400 && e.status < 500) {
+            reconcile(db, r.reservationId, 0);
+            return err(res, 400, ErrorCodes.BAD_REQUEST, `Meta rechazó la petición (HTTP ${e.status}${e.type ? ` ${e.type}` : ''})`);
+          }
+          holdUncertain(db, r.reservationId, `meta image ${e.status} ${e.type ?? ''} draft ${d.id}`);
+          return err(res, 502, ErrorCodes.META_ERROR,
+            `Meta no devolvió imagen (HTTP ${e.status}${e.type ? ` ${e.type}` : ''}; reserva retenida)`);
+        }
+      } catch (e) {
+        if (e instanceof RealAiDisabledError) {
+          return send(res, 200, { ok: true, result: fakeImage({ draft: draftOf(row) }) });
+        }
+        throw e;
+      }
     }
     if (method === 'POST' && pathname === '/api/ai/real') {
       // Vía real: existe el cableado (reserva + contrato), pero está bloqueada.
@@ -648,9 +796,11 @@ export function createRouter(db, opts = {}) {
       return send(res, 200, { ok: true, ...v });
     }
     if (method === 'POST' && pathname === '/api/audio/transcribe') {
+      const ctype = String(req.headers['content-type'] ?? '');
+      if (ctype.startsWith('audio/')) return transcribeReal(db, req, res, metaFetch);
       const body = await readJson(req).catch((e) => ({ __e: e }));
       if (body.__e) return err(res, body.__e.status ?? 400, ErrorCodes.BAD_REQUEST, body.__e.message);
-      // Sin retención de audio: solo se acepta el guion de prueba del doble.
+      // Doble (sin cambios): sin retención de audio, solo guion de prueba.
       return send(res, 200, { ok: true, result: fakeTranscribe({ script: body.script ?? '', durationMs: body.durationMs ?? 0 }) });
     }
 

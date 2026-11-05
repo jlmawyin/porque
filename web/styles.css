@@ -101,6 +101,34 @@ button, .boton {
 button:hover, .boton:hover { background: var(--primario-oscuro); border-color: var(--primario-oscuro); }
 button:disabled { opacity: 0.55; cursor: not-allowed; }
 .boton:visited { color: #fff; }
+button.secundario, .boton.secundario { background: var(--superficie); color: var(--primario); }
+button.secundario:hover, .boton.secundario:hover { background: var(--superficie-suave); border-color: var(--primario); }
+.boton.secundario:visited { color: var(--primario); }
+
+/* Formulario por pasos numerados (solo cuenta lo visible) */
+#mode-C { counter-reset: paso; }
+.campo { margin-bottom: 1.25rem; }
+.campo:not([hidden]) { counter-increment: paso; }
+.campo > label:first-child > span:first-child::before,
+.campo > p:first-child > strong::before,
+.campo > legend::before {
+  content: counter(paso) " · "; color: var(--primario);
+}
+.ayuda { color: var(--texto-suave); font-size: 0.95rem; margin: 0.25rem 0 0.5rem; }
+#imode-block .modos button { flex-direction: column; align-items: flex-start; gap: 0.15rem; }
+#imode-block .modos button small { font-weight: normal; font-size: 0.9rem; }
+
+/* Caja demo: evento ficticio */
+.demo-caja { border: 2px solid var(--primario); }
+.meta-barra { background: var(--superficie-suave); border: 2px solid var(--borde); border-radius: 999px; height: 1.25rem; overflow: hidden; }
+.meta-barra > span { display: block; height: 100%; background: var(--primario); }
+
+/* Aviso de modo demo */
+.demo-aviso {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem;
+  background: var(--aviso-fondo); border: 2px solid var(--acento); border-radius: 16px;
+  padding: 0.6rem 1rem; color: var(--acento-oscuro);
+}
 .boton.secundario { background: var(--superficie); color: var(--primario); }
 .boton.secundario:visited { color: var(--primario); }
 .boton.secundario:hover { background: var(--superficie-suave); }

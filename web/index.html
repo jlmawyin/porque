@@ -35,11 +35,56 @@
         <div class="ctas">
           <a class="boton" href="#explorar" data-i18n="ctaSupport">Quiero apoyar</a>
           <a class="boton secundario" href="/panel?a=registro" data-i18n="ctaCreate">Crear mi iniciativa</a>
+          <a class="boton secundario" id="demo-link" href="/panel" data-i18n="tryDemoShort">Probar la demo</a>
         </div>
+        <p id="demo-msg-idx" class="nota" role="status" hidden></p>
       </div>
       <figure class="hero-figura">
         <img src="/img/apoyo.svg" alt="Ilustración original: mesa de mercado con cerámica, pan y textiles artesanales bajo un toldo con un corazón" data-i18n-alt="heroAlt" width="640" height="480">
       </figure>
+    </div>
+  </section>
+
+  <section id="demo-evento" aria-labelledby="demo-titulo">
+    <div class="contenedor">
+      <div class="bloque demo-caja">
+        <p><span class="chip" data-i18n="demoEventBadge">DEMOSTRACIÓN · Evento ficticio</span></p>
+        <h2 id="demo-titulo" data-i18n="demoEventTitle">Cena solidaria de Panas (ficticia)</h2>
+        <img class="previa-portada" src="/img/portada-apoyo.svg" data-i18n-alt="demoEventAlt" alt="Ilustración de apoyo comunitario">
+        <p data-i18n="demoEventDesc">Un evento inventado para que pruebes cómo se participa y se dona. Nada aquí es real.</p>
+        <p><strong data-i18n="demoEventGoal">Meta de ejemplo: $500 USD</strong></p>
+        <div class="meta-barra" id="demo-barra" role="progressbar" aria-valuemin="0" aria-valuemax="500" aria-valuenow="120" aria-label="Recaudado simulado" data-i18n-aria="demoEventBarLabel"><span id="demo-barra-relleno" style="width:24%"></span></div>
+        <p class="nota" id="demo-recaudado">Recaudado (simulado): $120.00 USD</p>
+        <div class="ctas">
+          <button type="button" class="boton" id="demo-btn-donar" data-i18n="demoDonate">Donar (simulación)</button>
+          <button type="button" class="boton secundario" id="demo-btn-apoyar" data-i18n="demoVolunteer">Apoyar (demo)</button>
+          <a class="boton secundario" id="demo-link-2" href="/panel" data-i18n="demoCreateOwn">Crear tu propio evento</a>
+        </div>
+        <p id="demo-msg-caja" class="nota" role="status" hidden></p>
+        <div id="demo-donar-caja" hidden>
+          <p><strong data-i18n="demoAmountTitle">Elige un monto ficticio</strong></p>
+          <p>
+            <button type="button" data-demo-monto="100" class="big">$1</button>
+            <button type="button" data-demo-monto="500" class="big">$5</button>
+            <button type="button" data-demo-monto="1000" class="big">$10</button>
+          </p>
+          <label><span data-i18n="demoCustom">Otro monto (USD)</span> <input id="demo-monto" inputmode="decimal" placeholder="25"></label>
+          <p><button type="button" class="big" id="demo-confirmar" data-i18n="demoConfirmDonation">Confirmar donación simulada</button></p>
+          <p class="nota" id="demo-donar-msg" role="status"></p>
+        </div>
+        <div id="demo-apoyar-caja" hidden>
+          <label><span data-i18n="demoVolName">Tu nombre (ficticio)</span> <input id="demo-nombre" maxlength="60"></label>
+          <label><span data-i18n="demoVolMsg">Mensaje de apoyo</span> <input id="demo-mensaje" maxlength="140"></label>
+          <p><button type="button" class="big" id="demo-enviar" data-i18n="demoSendSupport">Enviar apoyo simulado</button></p>
+          <p class="nota" id="demo-apoyar-msg" role="status"></p>
+        </div>
+        <div id="demo-apoyos-caja" hidden>
+          <h3 data-i18n="demoSupportsTitle">Apoyos simulados</h3>
+          <ul id="demo-apoyos"></ul>
+        </div>
+        <p class="nota" data-i18n="demoSimNote">Simulación local en tu navegador: no mueve dinero real ni crea registros.</p>
+        <p><button type="button" class="secundario" id="demo-reset" data-i18n="demoReset">Reiniciar simulación</button></p>
+      </div>
     </div>
   </section>
 
@@ -188,12 +233,106 @@ function refreshLang(lang) {
   document.getElementById('why-porque').hidden = lang !== 'en';
   cargar();
   cargarIniciativas();
+  renderDemo();
   if (!document.getElementById('consulta').hidden && consultaNombre) {
     document.getElementById('consulta-producto').textContent = t(lang, 'consultingAbout', { name: consultaNombre });
   }
 }
+async function demoStart(msgId) {
+  const msg = document.getElementById(msgId);
+  msg.hidden = true;
+  try {
+    const r = await fetch('/api/demo/start', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+    if (r.ok) { location.href = '/panel'; return; }
+    msg.textContent = t(getLang(), r.status === 404 ? 'demoUnavailable' : 'demoError');
+  } catch {
+    msg.textContent = t(getLang(), 'demoError');
+  }
+  msg.hidden = false;
+}
+document.getElementById('demo-link').addEventListener('click', (e) => { e.preventDefault(); demoStart('demo-msg-idx'); });
+document.getElementById('demo-link-2').addEventListener('click', (e) => { e.preventDefault(); demoStart('demo-msg-caja'); });
+
+// Caja demo: evento ficticio con donación y apoyo simulados, solo local.
+// No llama a la API ni crea registros; todo vive en localStorage.
+const DEMO_GOAL_CENTS = 50000;
+const DEMO_START_CENTS = 12000;
+const DEMO_KEY = 'porque.demo.evento';
+function demoLoad() {
+  try {
+    const s = JSON.parse(localStorage.getItem(DEMO_KEY) ?? 'null');
+    if (s && Number.isInteger(s.raised) && Array.isArray(s.supports)) return s;
+  } catch { /* estado corrupto: se reinicia */ }
+  return { raised: DEMO_START_CENTS, supports: [] };
+}
+function demoSave(s) {
+  try { localStorage.setItem(DEMO_KEY, JSON.stringify(s)); } catch { /* sin almacenamiento: sigue en memoria */ }
+}
+const demoState = demoLoad();
+const demoMoney = (c) => `$${(c / 100).toFixed(2)} USD`;
+function renderDemo() {
+  const pct = Math.min(100, Math.round((demoState.raised / DEMO_GOAL_CENTS) * 100));
+  document.getElementById('demo-barra-relleno').style.width = pct + '%';
+  document.getElementById('demo-barra').setAttribute('aria-valuenow', String(Math.round(demoState.raised / 100)));
+  document.getElementById('demo-recaudado').textContent = t(L(), 'demoEventRaised', { amount: demoMoney(demoState.raised) });
+  document.getElementById('demo-apoyos-caja').hidden = demoState.supports.length === 0;
+  document.getElementById('demo-apoyos').innerHTML = demoState.supports.map((s) =>
+    `<li><strong>${escapeHtml(s.name)}</strong>${s.msg ? ` — ${escapeHtml(s.msg)}` : ''}</li>`).join('');
+}
+document.getElementById('demo-btn-donar').addEventListener('click', () => {
+  document.getElementById('demo-donar-caja').hidden = false;
+  document.getElementById('demo-apoyar-caja').hidden = true;
+  document.getElementById('demo-monto').focus();
+});
+document.getElementById('demo-btn-apoyar').addEventListener('click', () => {
+  document.getElementById('demo-apoyar-caja').hidden = false;
+  document.getElementById('demo-donar-caja').hidden = true;
+  document.getElementById('demo-nombre').focus();
+});
+document.querySelectorAll('[data-demo-monto]').forEach((b) =>
+  b.addEventListener('click', () => {
+    document.getElementById('demo-monto').value = (Number(b.dataset.demoMonto) / 100).toFixed(0);
+  }));
+document.getElementById('demo-confirmar').addEventListener('click', () => {
+  const raw = document.getElementById('demo-monto').value.trim().replace(',', '.');
+  const cents = Math.round(Number(raw) * 100);
+  const msg = document.getElementById('demo-donar-msg');
+  if (!Number.isFinite(cents) || cents <= 0 || cents > 1000000) {
+    msg.textContent = t(L(), 'demoBadAmount');
+    return;
+  }
+  demoState.raised += cents;
+  demoSave(demoState);
+  renderDemo();
+  msg.textContent = t(L(), 'demoThanksDonation', { amount: demoMoney(cents) });
+  document.getElementById('demo-monto').value = '';
+});
+document.getElementById('demo-enviar').addEventListener('click', () => {
+  const name = document.getElementById('demo-nombre').value.trim();
+  const msg = document.getElementById('demo-apoyar-msg');
+  if (!name) {
+    msg.textContent = t(L(), 'demoNeedName');
+    document.getElementById('demo-nombre').focus();
+    return;
+  }
+  demoState.supports.unshift({ name: name.slice(0, 60), msg: document.getElementById('demo-mensaje').value.trim().slice(0, 140) });
+  demoSave(demoState);
+  renderDemo();
+  msg.textContent = t(L(), 'demoThanksVolunteer', { name });
+  document.getElementById('demo-nombre').value = '';
+  document.getElementById('demo-mensaje').value = '';
+});
+document.getElementById('demo-reset').addEventListener('click', () => {
+  demoState.raised = DEMO_START_CENTS;
+  demoState.supports = [];
+  demoSave(demoState);
+  renderDemo();
+  document.getElementById('demo-donar-msg').textContent = '';
+  document.getElementById('demo-apoyar-msg').textContent = '';
+});
 const getLang = initI18n(refreshLang);
 document.getElementById('why-porque').hidden = getLang() !== 'en';
+renderDemo();
 cargar();
 cargarIniciativas();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
