@@ -5,20 +5,22 @@ Ayuda a emprendedores a gestionar su catálogo hablando, respondiendo
 preguntas breves o tocando controles accesibles, según lo que les
 resulte más cómodo en cada momento.
 
-- Demo: un vendedor, español, USD, datos ficticios.
+- Demo: cuentas, español e inglés, USD, datos ficticios.
 - Dominio previsto: `porque.somospanas.com` (decisión de producto;
   esta entrega es solo local, sin publicar ni tocar infraestructura).
 - APIs reales del producto: **desactivadas por defecto**. Dobles de
   prueba claramente etiquetados (`FAKE-DOUBLE`).
 - Estado: portada, cuentas con propiedad, iniciativas (donaciones /
   negocio / ambas) con página pública `/i/:id`, apoyos como intención
-  o simulación (nunca dinero), modalidades A/B/C y URL canónica.
-  QR descargable pendiente de instalar dependencia.
-  Verificación ejecutada pendiente de shell (ver `docs/RELEVO-SUPERVISION.md`).
+  o simulación (nunca dinero), modalidades A/B/C, URL canónica y
+  QR descargable con base pública configurada (no disponible sin
+  ella). Interfaz en español e inglés.
+  Verificado con ejecución: suite 63/63 y recorrido UI ES+EN
+  (ver `docs/registro.md`). Sin despliegue.
 
 ## Ejecutar en local
 
-Requiere Node 24+ (usa `node:sqlite`, `node:test`; cero dependencias).
+Requiere Node 24+ (usa `node:sqlite`, `node:test`; 1 dependencia: `qrcode-generator`, solo QR).
 
 ```powershell
 node scripts/gen-secret.mjs   # crea .env privado (no versionado)
@@ -40,7 +42,7 @@ Nunca aparece en código, commits, logs ni navegador.
   validación, hash de confirmación, veredicto de audio).
 - `adapters/` — `meta-contracts.mjs` (fichas H0a), `meta.mjs` (vía real
   bloqueada), `fakes.mjs` (dobles etiquetados).
-- `tests/` — 8 suites con `node:test` (ver `docs/registro.md`).
+- `tests/` — 12 archivos de prueba, 63 pruebas con `node:test` (ver `docs/registro.md`).
 - `docs/` — H0a, presupuesto, decisiones, registro, intentos.
 - `data/` — SQLite + secreto (persistente y privado; ignorado por git).
 
@@ -58,7 +60,9 @@ Nunca aparece en código, commits, logs ni navegador.
 - Sin retención de audio; las pausas no confirman ni publican.
 - Apoyos: intención o simulación etiquetada; jamás dinero recibido;
   resumen público solo con conteos.
-- Compartir: URL canónica solo con base explícita; QR pendiente.
+- Compartir: URL canónica solo con base explícita no local; QR
+  descargable con base pública configurada (no disponible sin ella;
+  una URL configurada no confirma despliegue).
 - Imágenes sintéticas con etiqueta visible
   «Imagen ilustrativa generada con IA»; publicar sin imagen es posible.
 

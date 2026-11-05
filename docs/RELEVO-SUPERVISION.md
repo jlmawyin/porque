@@ -1,52 +1,27 @@
-# RELEVO — Supervisión de Porque (para Claude + Jorge)
+# Porque — estado y seguimiento con Jorge
 
-## Supervisión general — estado 2026-11-04 y plan del turno
+## Estado 2026-11-04 (encargo unificado cerrado y entregado)
 
-- Partida: HEAD 982fc16 local y GitHub; solo este relevo con cambios
-  locales (conservados, no reescritos). panel.js sintaxis válida, sin
-  NUL, sin faltanDe duplicado; qrcode-generator declarado.
-- Verificado con ejecución (2026-11-04, sobre 982fc16 limpio): npm test
-  pass 58 fail 0 (11 archivos de prueba). Es validación API de ese
-  commit, NO del recorrido por interfaz (incompleto) ni del código que
-  cambie este turno.
-- Implementado: Fases 1–7 + UX Etapas 1–2 (portada, cuentas,
-  iniciativas, apoyos, modalidades, QR, diseño).
-- Encargo unificado en curso: Fase 1 cierre funcional → checkpoint
-  local → Fase 2 textos con identidad → Fase 3 ES/EN → verificación
-  final → commit+push. Sin funciones nuevas, sin cambio de stack, sin
-  llamadas facturables, sin despliegue.
-- Plan de este turno: (1) Fase 1: 4 correcciones mínimas (revisar exige
-  guardar con campos sucios; save fallido conserva campos incl. precio;
-  base localhost/loopback/privada nunca pública ni QR accesible;
-  espejo offline documentado como última versión guardada);
-  (2) recorrido por clics escritorio+390px con capturas, QR
-  descarga+decode, reinicio, SW, consola; (3) checkpoint local;
-  (4) Fase 2 textos; (5) Fase 3 ES/EN; (6) verificación final ES/EN +
-  npm test sobre código final; (7) informes + commit + push normal.
-  Archivos previstos: web/panel.js, web/panel.html,
-  web/initiative.html, shared/contracts.mjs,
-  tests/initiatives.test.mjs, web/* (Fases 2–3), docs/*.
-  Cierre: recorrido UI completo ES/EN evidenciado + suite verde sobre
-  código final + push normal al repo autorizado.
-- Contadores (docs/intentos.json, sin reinicio): shell-exec 2/3
-  resuelto; test-runner-dir 2/3 resuelto; shell-blocked-ux 1/3 abierto,
-  pendiente de actualizar con evidencia de este turno.
-- Bloqueos: ninguno activo. Turno anterior: veto de escritura OneDrive
-  (timeouts) + apagado de PC a mitad del encargo unificado; estado
-  actual comprobado por lectura antes de repetir operaciones.
-- Fase 1 cerrada y verificada (checkpoint ed710aa): 4/4 correcciones,
-  recorrido ES con capturas, QR decode OK, reinicio OK, suite 59/59.
-- Fase 2 cerrada (textos con identidad, sin rediseño): referencias
-  aplicadas (portada, registro, negocios, compartir, apoyo), botones
-  claros conservados, prefijo QR duplicado y plural limpiados.
-- Fase 3 cerrada y verificada: selector Español | English en vivo
-  (sin recarga: conserva campos, sesión, nada publica), diccionarios
-  locales (~200 claves, paridad probada), prioridad ?lang→guardada→
-  navegador→es, Why Porque solo en EN, USD sin conversión, SW v3.
-  Recorrido EN completo + regresión ES con capturas, consola sin
-  errores bloqueantes, QR decode re-verificado, suite 63/63
-  (12 archivos de prueba).
-- Próximo paso: commit de cierre bilingüe + push normal + informe.
+- HEAD: `91515e0` local y en GitHub, repo público desde 2026-11-04
+  por decisión de Jorge. Árbol limpio tras el push.
+- Implementado y verificado: portada, cuentas, iniciativas, apoyos,
+  modalidades, QR, diseño UX, 4 correcciones funcionales, textos con
+  identidad y versión ES/EN (detalle en `docs/registro.md`).
+- Verificado con ejecución sobre el código final: `npm test` 63/63
+  fail 0 (12 archivos de prueba); recorrido UI completo ES+EN por
+  clics en escritorio y 390px con capturas; QR descargado y
+  decodificado exacto; reinicio con persistencia; SW único porque-v3;
+  consola sin errores bloqueantes. Emulación 390px, no Android físico.
+- Contadores (`docs/intentos.json`, conservados): shell-exec 2/3
+  resuelto; test-runner-dir 2/3 resuelto; shell-blocked-ux 1/3
+  resuelto. Cero fallos nuevos.
+- Bloqueos: ninguno activo.
+- Pendientes: defecto conocido de botones de modalidad (vacían
+  campos sin guardar; documentado, sin corregir); validación en
+  Android físico; ronda real 1 (presupuesto); bases del evento;
+  datos Contabo; despliegue en porque.somospanas.com.
+- Próximo paso: lo que Jorge encargue (candidatos: defecto de
+  modalidad, despliegue, ronda real 1).
 
 ## Propósito y alcance actual
 
@@ -57,8 +32,8 @@ accesibilidad. Autorizado: trabajo local en PROJECT_ROOT, dependencias
 del proyecto, migraciones no destructivas y commits locales sin
 secretos. NO autorizado: pagos reales, llamadas facturables sin
 presupuesto aprobado, despliegue ni cambios de infraestructura.
-Push al repo reservado autorizado expresamente por Jorge
-(commit 982fc16 en main local y GitHub, 2026-11-04).
+Push y visibilidad pública autorizados expresamente por Jorge
+(main en GitHub al día con `91515e0`, repo público desde 2026-11-04).
 
 ## Qué existía y qué se conserva
 
@@ -174,11 +149,12 @@ Push al repo reservado autorizado expresamente por Jorge
 - API: `server/api.mjs`; auth: `server/auth.mjs`; límites:
   `server/limits.mjs`; BD: `server/db.mjs`.
 - Contratos: `shared/contracts.mjs`. Dobles: `adapters/fakes.mjs`.
-- Web: `web/index.html`, `web/panel.html`, `web/panel.js`,
-  `web/styles.css`, `web/sw.js`.
+- Web: `web/index.html`, `web/initiative.html`, `web/panel.html`,
+  `web/panel.js`, `web/i18n.mjs`, `web/styles.css`, `web/sw.js`.
 - Pruebas: `tests/*.test.mjs` (12 archivos de prueba, 63 pruebas). Docs: `docs/registro.md`,
   `docs/intentos.json`, `docs/H0a-contratos.md`,
-  `docs/presupuesto-ronda1.md`, `docs/decisiones.md`.
+  `docs/presupuesto-ronda1.md`, `docs/decisiones.md`,
+  `docs/productos-ia.md`, `docs/RELEVO-SESION.md`.
 - Privados (no versionar): `.env`, `data/`.
 
 ## Decisiones y supuestos
@@ -189,35 +165,34 @@ Push al repo reservado autorizado expresamente por Jorge
   hash scrypt), sesiones con `user_id`; `sellers` heredado solo para
   datos existentes con propietario NULL (no tocables por cuentas
   nuevas); aislamiento verificado con dos cuentas.
-- Supuesto: un idioma (es), USD, una iniciativa por cuenta (mínimo).
+- Idiomas: español e inglés con selector en vivo (el supuesto
+  histórico "solo es" quedó sustituido en Fase 3). USD, una
+  iniciativa por cuenta (mínimo).
 - Supuesto: QR = solo URL pública de `PUBLIC_BASE_URL` explícita;
   `127.0.0.1` nunca se presenta como pública.
 - Supuesto: donaciones = intención/simulación etiquetada, jamás
   “dinero recibido”; consultas ≠ pedidos pagados.
 
-## Fase actual e intentos consumidos
+## Intentos consumidos (histórico, ver `docs/intentos.json`)
 
-- Fase 1 (base y presentación), intento 1/3.
-- `shell-exec`: 2 acumulados previos (resuelto entonces); hoy nueva
-  denegación (prompts desactivados) + sandbox roto persistente.
-  Contador compartido: NO reintentar en bucle.
-- `test-runner-dir`: resuelto (lista explícita en `npm test`).
+- `shell-exec`: 2/3, resuelto. `test-runner-dir`: 2/3, resuelto.
+  `shell-blocked-ux`: 1/3, resuelto. Sin reintentos en bucle.
 
 ## Comandos y resultados de verificación
 
-- `npm test` (estado previo verificado): 28/28, ~2 s.
-- Hoy: `npm test` no ejecutable (bloqueo shell, ver Bloqueos).
-- Recorrido previo: RECORRIDO OK por API + catálogo/panel en
-  navegador real (Galletas, $5.00 USD).
+- `npm test` sobre código final: 63/63 fail 0, ~4 s
+  (12 archivos de prueba).
+- Recorrido UI por clics ES+EN (escritorio y 390px) con capturas
+  en `.playwright-cli/` (no versionadas); QR descargado y
+  decodificado exacto; reinicio con persistencia.
 
 ## Verificación por tipo
 
-- UI: catálogo y panel renderizados en navegador real (entrega
-  anterior). Interacción panel con clics: pendiente.
-- API: recorrido completo + 28 pruebas (entrega anterior).
-- Dobles: etiquetados, sin valor de integración real.
-- Integración real: ninguna ejecutada; H0a parcial, presupuesto
-  $0.50 propuesto pendiente de aprobación.
+- UI: recorrido completo por clics ES+EN en navegador real.
+- API: suite 63/63 sobre el código final.
+- Dobles: etiquetados `FAKE-DOUBLE`, sin valor de integración real.
+- Integración real con APIs de IA: ninguna ejecutada; H0a parcial,
+  presupuesto $0.50 propuesto pendiente de aprobación.
 
 ## Cómo arrancar y recorrer la demo
 
@@ -230,17 +205,18 @@ npm test
 
 ## Bloqueos, pendientes y próximo paso
 
-- Shell: incidente 2026-10-31–11-01 RESUELTO (vía normal
-  operativa desde 2026-11-04; evidencia: sonda + 58/58 + QR
-  roundtrip ejecutados). Sin cambios de ACL ni elusiones.
-- Pendientes no bloqueantes: Android físico, ronda real 1
-  (presupuesto), bases del evento, datos Contabo, despliegue.
-- Próximo paso: correcciones mínimas y verificación de este turno
-  (ver Estado 2026-11-04).
+- Bloqueos: ninguno activo. Incidentes de shell anteriores,
+  resueltos (detalle en `docs/intentos.json` y `docs/registro.md`).
+- Pendientes: defecto conocido de botones de modalidad;
+  validación en Android físico; ronda real 1 (presupuesto); bases
+  del evento; datos Contabo; despliegue.
+- Próximo paso: lo que Jorge encargue.
 
-## Preparación de repositorio y despliegue
+## Repositorio y despliegue
 
-- Repo reservado: https://github.com/jlmawyin/porque (sin remote
-  configurado, sin push). Dominio previsto: porque.somospanas.com
-  (decisión de producto; Cloudflare→Contabo según Jorge, HTTPS y
-  funcionamiento por verificar en su etapa). Preparación ≠ publicación.
+- Repo: https://github.com/jlmawyin/porque (público desde
+  2026-11-04 por decisión de Jorge; main al día con `91515e0`).
+  Dominio previsto: porque.somospanas.com (decisión de producto;
+  Cloudflare→Contabo según Jorge, HTTPS y funcionamiento por
+  verificar en su etapa). Repo público ≠ sitio publicado: el
+  despliegue no está ejecutado.

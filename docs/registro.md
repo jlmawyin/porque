@@ -163,3 +163,21 @@
   manifiesto conserva lang nominal "es" (estático). Contadores de
   intentos sin cambios (todo resuelto, 0 fallos nuevos).
 - Pendiente: commit de cierre + push normal + informe (este turno).
+
+## Corrección documental (2026-11-04, encargo de Jorge)
+
+- Pretendido: corregir documentación antes de continuar; solo docs,
+  sin tocar código ni reescribir historial.
+- Terminado: encabezado del relevo cambiado a "Porque — estado y
+  seguimiento con Jorge"; `docs/productos-ia.md` reescrito solo con
+  hechos verificables (herramienta, capacidades, integraciones
+  ejecutadas/pendientes; fuera atribuciones deducidas e
+  inventarios especulativos); README, decisiones D1 y relevo
+  actualizados a la evidencia (QR disponible, 1 dependencia, 12
+  archivos/63 pruebas, ES/EN, repo público, sin despliegue);
+  nuevo `docs/RELEVO-SESION.md` breve para sesión nueva.
+- Archivos: `docs/RELEVO-SUPERVISION.md`, `docs/productos-ia.md`,
+  `docs/RELEVO-SESION.md` (nuevo), `README.md`,
+  `docs/decisiones.md`, `docs/registro.md`.
+- Comandos: revisión de diff + commit documental + push normal.
+- Pendiente: lo que Jorge encargue.

@@ -3,6 +3,8 @@
 - D1 Cero dependencias (Node 24 + `node:sqlite` + `node:test` + web
   vainilla). Motivo: plazo corto, auditoría simple, sin red de
   registro ni toolchain. Revisable si H0a exige un SDK oficial.
+  Actualización 2026-11-04: 1 dependencia (`qrcode-generator` MIT,
+  solo QR, autorizada por Jorge por ser pequeña y mantenida).
 - D2 SQLite en `data/` con WAL. Sobrevive a reinicios y despliegues
   solo con disco persistente y privado (decidido para la demo).
 - D3 Contratos únicos en `shared/contracts.mjs` servido al navegador.
